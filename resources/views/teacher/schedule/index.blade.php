@@ -1,0 +1,56 @@
+    <x-app-layout>
+        <x-slot name="header">
+            <div class="flex justify-between items-center">
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                    {{ __('جدولي الدراسي') }}
+                </h2>
+                 <a href="#" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    إدارة أوقات الإتاحة
+                </a>
+            </div>
+        </x-slot>
+
+        <div class="py-12">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                
+                <div class="space-y-8">
+                    @forelse($schedule as $day => $appointments)
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 pb-2 border-b mb-4">{{ $day }}</h3>
+                        <div class="space-y-4">
+                            @foreach($appointments as $appt)
+                            <div class="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-10 rounded-full 
+                                        @if($appt->status === 'scheduled' && $appt->start_time->isFuture()) bg-indigo-500 @endif
+                                        @if($appt->status === 'scheduled' && $appt->start_time->isPast()) bg-amber-400 @endif
+                                    "></div>
+                                    <div class="ms-4">
+                                        <p class="font-bold text-gray-800">{{ $appt->start_time->format('h:i A') }}</p>
+                                        <p class="text-sm text-gray-600">حصة مع الطالب: {{ $appt->client->name }}</p>
+                                    </div>
+                                </div>
+                                <div>
+                                     @if($appt->status === 'scheduled' && $appt->start_time->isFuture())
+                                        <a href="#" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">الانضمام</a>
+                                    @elseif($appt->status === 'scheduled' && $appt->start_time->isPast())
+                                        <a href="{{ route('teacher.sessions.log.create', ['appointment' => $appt->id]) }}" class="text-sm font-semibold text-amber-600 hover:text-amber-800">تسجيل الحصة</a>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @empty
+                        <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            <h3 class="mt-2 text-sm font-semibold text-gray-900">لا توجد حصص مجدولة لهذا الأسبوع.</h3>
+                        </div>
+                    @endforelse
+                </div>
+
+            </div>
+        </div>
+    </x-app-layout>
+    
+
