@@ -26,6 +26,7 @@ class Appointment extends Model
         'status',
         'teacher_notes',
         'session_proof_id',
+        'google_meet_link',
     ];
 
     /**

@@ -18,6 +18,8 @@ use App\Http\Controllers\Teacher\SessionLogController;
 use App\Http\Controllers\Admin\SessionVerificationController;
 use App\Http\Controllers\Admin\DisputeController as AdminDisputeController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
+use App\Http\Controllers\Admin\TeacherClientController as AdminTeacherClientController;
+use App\Http\Controllers\Teacher\AppointmentController as TeacherAppointmentController; // Import new
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,17 +31,10 @@ use Illuminate\Support\Facades\Route;
 //======================================================================
 // Public Guest Routes
 //======================================================================
-Route::get('/', function () {
-    return view('welcome');
-})->name('welcome');
-
-Route::get('/teachers', function () {
-    return view('teachers');
-})->name('teachers.index');
-
+Route::get('/', function () { return view('welcome'); })->name('welcome');
+Route::get('/teachers', function () { return view('teachers'); })->name('teachers.index');
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing.index');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
-
 
 //======================================================================
 // Authenticated Client Routes
@@ -51,17 +46,21 @@ Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->name('
     Route::get('/my-subscription', [ClientSubscriptionController::class, 'index'])->name('subscription.index');
 });
 
-
 //======================================================================
 // Authenticated Teacher Routes
 //======================================================================
 Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
     Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
     Route::get('/schedule', [TeacherScheduleController::class, 'index'])->name('schedule.index');
+    
+    // NEW APPOINTMENT BOOKING ROUTES FOR TEACHERS
+    Route::get('/appointments/create', [TeacherAppointmentController::class, 'create'])->name('appointments.create');
+    Route::post('/appointments', [TeacherAppointmentController::class, 'store'])->name('appointments.store');
+
+    // Session Logging Routes
     Route::get('/sessions/{appointment}/log', [SessionLogController::class, 'create'])->name('sessions.log.create');
     Route::post('/sessions/{appointment}/log', [SessionLogController::class, 'store'])->name('sessions.log.store');
 });
-
 
 //======================================================================
 // Authenticated Admin Routes
@@ -86,6 +85,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('/teachers/{teacher}/edit', [AdminTeacherController::class, 'edit'])->name('teachers.edit');
     Route::patch('/teachers/{teacher}', [AdminTeacherController::class, 'update'])->name('teachers.update');
     Route::delete('/teachers/{teacher}', [AdminTeacherController::class, 'destroy'])->name('teachers.destroy');
+    Route::post('/teachers/{teacher}/clients', [AdminTeacherClientController::class, 'sync'])->name('teachers.clients.sync');
 
     // Schedule Management
     Route::get('/schedule', [AdminMasterScheduleController::class, 'index'])->name('schedule.index');
@@ -101,7 +101,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::patch('/disputes/{dispute}/cancel', [AdminDisputeController::class, 'cancel'])->name('disputes.cancel');
 });
 
-
 //======================================================================
 // General Authenticated Routes
 //======================================================================
@@ -110,7 +109,6 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-
 
 //======================================================================
 // Authentication Routes (Breeze)

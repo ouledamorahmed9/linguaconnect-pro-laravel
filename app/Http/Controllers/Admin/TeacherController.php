@@ -6,31 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule; // Import the Rule class for unique validation
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 
 class TeacherController extends Controller
 {
-
-
-    /**
-     * Remove the specified teacher from the database.
-     */
-    public function destroy(User $teacher): RedirectResponse
-    {
-        // Add a security check to ensure we don't delete an admin
-        if ($teacher->hasRole('admin')) {
-            return back()->with('error', 'Cannot delete an administrator.');
-        }
-
-        $teacher->delete();
-
-        return redirect()->route('admin.teachers.index')->with('status', 'Teacher deleted successfully!');
-    }
-
-
     /**
      * Display a listing of all teachers.
      */
@@ -51,7 +33,7 @@ class TeacherController extends Controller
     /**
      * Store a newly created teacher in the database.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -71,19 +53,24 @@ class TeacherController extends Controller
 
     /**
      * Show the form for editing the specified teacher.
-     * Laravel's Route Model Binding automatically finds the User from the ID in the URL.
      */
     public function edit(User $teacher): View
     {
-        return view('admin.teachers.edit', compact('teacher'));
+        // THIS IS THE NEW LOGIC
+        // Fetch all clients to display in the checklist
+        $allClients = User::where('role', 'client')->orderBy('name')->get();
+        
+        // Get a simple array of IDs for the clients THIS teacher is already assigned to
+        $assignedClientIds = $teacher->clients->pluck('id')->toArray();
+
+        return view('admin.teachers.edit', compact('teacher', 'allClients', 'assignedClientIds'));
     }
 
     /**
      * Update the specified teacher in the database.
      */
-    public function update(Request $request, User $teacher)
+    public function update(Request $request, User $teacher): RedirectResponse
     {
-        // Professional validation for updating a user
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($teacher->id)],
@@ -94,7 +81,6 @@ class TeacherController extends Controller
             'email' => $request->email,
         ]);
 
-        // Optionally, update the password if a new one is provided
         if ($request->filled('password')) {
             $request->validate([
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -104,6 +90,18 @@ class TeacherController extends Controller
 
         return redirect()->route('admin.teachers.index')->with('status', 'Teacher profile updated successfully!');
     }
-    
-}
 
+    /**
+     * Remove the specified teacher from the database.
+     */
+    public function destroy(User $teacher): RedirectResponse
+    {
+        if ($teacher->hasRole('admin')) {
+            return back()->with('error', 'Cannot delete an administrator.');
+        }
+
+        $teacher->delete();
+
+        return redirect()->route('admin.teachers.index')->with('status', 'Teacher deleted successfully!');
+    }
+}

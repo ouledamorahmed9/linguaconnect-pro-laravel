@@ -54,6 +54,12 @@
                             <x-text-input id="topic" class="block mt-1 w-full" type="text" name="topic" placeholder="مثال: مراجعة زمن المضارع البسيط" required />
                         </div>
 
+                        <!-- ADD THIS NEW FIELD for Google Meet Link -->
+                        <div>
+                            <x-input-label for="google_meet_link" :value="__('رابط Google Meet')" />
+                            <x-text-input id="google_meet_link" class="block mt-1 w-full ltr" type="url" name="google_meet_link" placeholder="https://meet.google.com/xyz-abcd-efg" required />
+                        </div>
+
                         <div class="flex items-center justify-end mt-6">
                             <a href="{{ route('admin.schedule.index') }}" class="text-sm text-gray-600 hover:text-gray-900 mr-4">
                                 إلغاء

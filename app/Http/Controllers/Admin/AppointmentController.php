@@ -25,33 +25,33 @@ class AppointmentController extends Controller
     /**
      * Store a newly created appointment in storage.
      */
-    public function store(Request $request)
-    {
-        // Professional validation for all incoming data
-        $validated = $request->validate([
-            'client_id' => ['required', 'exists:users,id'],
-            'teacher_id' => ['required', 'exists:users,id'],
-            'date' => ['required', 'date'],
-            'start_time' => ['required', 'date_format:H:i'],
-            'topic' => ['required', 'string', 'max:255'],
-        ]);
+        public function store(Request $request)
+        {
+            // Professional validation for all incoming data
+            $validated = $request->validate([
+                'client_id' => ['required', 'exists:users,id'],
+                'teacher_id' => ['required', 'exists:users,id'],
+                'date' => ['required', 'date'],
+                'start_time' => ['required', 'date_format:H:i'],
+                'topic' => ['required', 'string', 'max:255'],
+                'google_meet_link' => ['required', 'url', 'max:255'], // Add this rule
+            ]);
 
-        // Combine date and time into a single Carbon datetime object
-        $startTime = Carbon::parse($validated['date'] . ' ' . $validated['start_time']);
-        $endTime = $startTime->copy()->addHour(); // Assuming all lessons are 1 hour long
+            $startTime = Carbon::parse($validated['date'] . ' ' . $validated['start_time']);
+            $endTime = $startTime->copy()->addHour();
 
-        // Create the appointment using our model
-        Appointment::create([
-            'client_id' => $validated['client_id'],
-            'teacher_id' => $validated['teacher_id'],
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-            'topic' => $validated['topic'],
-            'subject' => 'Unknown', // Placeholder subject
-            'status' => 'scheduled',
-        ]);
+            Appointment::create([
+                'client_id' => $validated['client_id'],
+                'teacher_id' => $validated['teacher_id'],
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'topic' => $validated['topic'],
+                'google_meet_link' => $validated['google_meet_link'], // Add this line
+                'subject' => 'Unknown',
+                'status' => 'scheduled',
+            ]);
 
-        return redirect()->route('admin.schedule.index')->with('status', 'Appointment booked successfully!');
-    }
+            return redirect()->route('admin.schedule.index')->with('status', 'Appointment booked successfully!');
+        }
 }
 

@@ -5,7 +5,6 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    {{-- This dynamically changes the logo link based on the user's role --}}
                     @if(Auth::user()->hasRole('teacher'))
                         <a href="{{ route('teacher.dashboard') }}" class="text-2xl font-bold text-indigo-600">
                             وصلة تعليم
@@ -31,11 +30,22 @@
                         <x-nav-link :href="route('teacher.schedule.index')" :active="request()->routeIs('teacher.schedule.index')">
                             {{ __('جدولي') }}
                         </x-nav-link>
+                        {{-- NEW BOOKING LINK FOR TEACHER --}}
+                        <x-nav-link :href="route('teacher.appointments.create')" :active="request()->routeIs('teacher.appointments.create')">
+                            {{ __('حجز حصة') }}
+                        </x-nav-link>
                         
                     @elseif(Auth::user()->hasRole('admin'))
                         {{-- ==================== ADMIN LINKS ==================== --}}
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                             {{ __('لوحة التحكم') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('admin.schedule.index')" :active="request()->routeIs('admin.schedule.index')">
+                            {{ __('الجدول الرئيسي') }}
+                        </x-nav-link>
+                        {{-- ADMIN'S SUPER-USER BOOKING LINK --}}
+                        <x-nav-link :href="route('admin.appointments.create')" :active="request()->routeIs('admin.appointments.create')">
+                            {{ __('حجز موعد') }}
                         </x-nav-link>
                         <x-nav-link :href="route('admin.clients.index')" :active="request()->routeIs('admin.clients.index')">
                             {{ __('إدارة العملاء') }}
@@ -43,9 +53,8 @@
                         <x-nav-link :href="route('admin.teachers.index')" :active="request()->routeIs('admin.teachers.index')">
                             {{ __('إدارة المعلمين') }}
                         </x-nav-link>
-                                    {{-- ADD THIS NEW LINK --}}
                         <x-nav-link :href="route('admin.disputes.index')" :active="request()->routeIs('admin.disputes.index')">
-                                    {{ __('مركز النزاعات') }}
+                            {{ __('مركز النزاعات') }}
                         </x-nav-link>
 
                     @else
@@ -58,6 +67,9 @@
                         </x-nav-link>
                         <x-nav-link :href="route('client.progress-reports.index')" :active="request()->routeIs('client.progress-reports.index')">
                             {{ __('تقارير التقدم') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('client.subscription.index')" :active="request()->routeIs('client.subscription.index')">
+                            {{ __('اشتراكي') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -112,16 +124,26 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            @if(Auth::user()->hasRole('teacher'))
+             @if(Auth::user()->hasRole('teacher'))
                 <x-responsive-nav-link :href="route('teacher.dashboard')" :active="request()->routeIs('teacher.dashboard')">
                     {{ __('لوحة التحكم') }}
                 </x-responsive-nav-link>
                  <x-responsive-nav-link :href="route('teacher.schedule.index')" :active="request()->routeIs('teacher.schedule.index')">
                     {{ __('جدولي') }}
                 </x-responsive-nav-link>
+                {{-- NEW BOOKING LINK FOR TEACHER --}}
+                <x-responsive-nav-link :href="route('teacher.appointments.create')" :active="request()->routeIs('teacher.appointments.create')">
+                    {{ __('حجز حصة') }}
+                </x-responsive-nav-link>
             @elseif(Auth::user()->hasRole('admin'))
-                 <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                     {{ __('لوحة التحكم') }}
+                </x-responsive-nav-link>
+                 <x-responsive-nav-link :href="route('admin.schedule.index')" :active="request()->routeIs('admin.schedule.index')">
+                    {{ __('الجدول الرئيسي') }}
+                </x-responsive-nav-link>
+                 <x-responsive-nav-link :href="route('admin.appointments.create')" :active="request()->routeIs('admin.appointments.create')">
+                    {{ __('حجز موعد') }}
                 </x-responsive-nav-link>
                  <x-responsive-nav-link :href="route('admin.clients.index')" :active="request()->routeIs('admin.clients.index')">
                     {{ __('إدارة العملاء') }}
@@ -129,7 +151,6 @@
                  <x-responsive-nav-link :href="route('admin.teachers.index')" :active="request()->routeIs('admin.teachers.index')">
                     {{ __('إدارة المعلمين') }}
                 </x-responsive-nav-link>
-                {{-- ADD THIS NEW LINK --}}
                 <x-responsive-nav-link :href="route('admin.disputes.index')" :active="request()->routeIs('admin.disputes.index')">
                     {{ __('مركز النزاعات') }}
                 </x-responsive-nav-link>
