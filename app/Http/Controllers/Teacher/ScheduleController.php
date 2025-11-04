@@ -3,61 +3,58 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
-use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
-use Carbon\Carbon;
+use Carbon\Carbon; // Make sure Carbon is imported
 
 class ScheduleController extends Controller
 {
     /**
-     * Display the teacher's graphical schedule page.
+     * Display the teacher's schedule on a graphical calendar.
      */
-    public function index(): View
+    public function index(Request $request)
     {
         $teacher = Auth::user();
-        $today = Carbon::now();
-        $startOfWeek = $today->startOfWeek(Carbon::SATURDAY)->format('Y-m-d H:i:s');
-        $endOfWeek = $today->endOfWeek(Carbon::FRIDAY)->format('Y-m-d H:i:s');
 
-        // 1. Fetch all appointments for the current week
+        // 1. Fetch appointments for a wider date range to fill the calendar
+        // We'll get appointments from the last 30 days and for the next 60 days
         $appointments = $teacher->appointments()
-            ->with('client')
-            ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
-            ->get();
+                              ->with('client') // Eager load the client data
+                              ->where('start_time', '>=', Carbon::now()->subDays(30))
+                              ->where('start_time', '<=', Carbon::now()->addDays(60))
+                              ->get();
 
-        // 2. Create the professional "lookup map"
-        // This makes the view file much cleaner.
-        $appointmentsMap = [];
-        foreach ($appointments as $appointment) {
-            $day = $appointment->start_time->dayOfWeek; // 0=Sun, 1=Mon...
-            $hour = $appointment->start_time->format('H'); // "09", "10"
-            $appointmentsMap[$day][$hour] = $appointment;
-        }
+        // 2. Format the appointments into a JSON structure for FullCalendar
+        $calendarEvents = $appointments->map(function ($appointment) {
+            
+            // Determine event color based on status
+            $color = '#4f46e5'; // Default: Indigo (scheduled)
+            if ($appointment->status === 'completed') {
+                $color = '#16a34a'; // Green
+            } elseif ($appointment->status === 'cancelled') {
+                $color = '#dc2626'; // Red
+            }
 
-        // 3. Define the days and time slots for our graphical calendar
-        $days = [
-            1 => 'الإثنين',
-            2 => 'الثلاثاء',
-            3 => 'الأربعاء',
-            4 => 'الخميس',
-            5 => 'الجمعة',
-            6 => 'السبت',
-            0 => 'الأحد',
-        ];
+            return [
+                'id'        => $appointment->id,
+                'title'     => $appointment->client->name . ' - ' . $appointment->topic,
+                'start'     => $appointment->start_time->toIso8601String(),
+                'end'       => $appointment->end_time->toIso8601String(),
+                'color'     => $color,
+                'url'       => $appointment->google_meet_link, // Makes the event clickable to join
+                'extendedProps' => [
+                    'subject' => $appointment->subject,
+                    'client' => $appointment->client->name,
+                    'status' => $appointment->status,
+                    'meetLink' => $appointment->google_meet_link,
+                    'logUrl' => route('teacher.sessions.log.create', $appointment)
+                ]
+            ];
+        });
 
-        // e.g., 8:00 AM to 8:00 PM
-        $timeSlots = [];
-        for ($hour = 8; $hour <= 20; $hour++) {
-            $timeSlots[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
-        }
-        
+        // 3. Pass the formatted data to the view
         return view('teacher.schedule.index', [
-            'days' => $days,
-            'timeSlots' => $timeSlots,
-            'appointmentsMap' => $appointmentsMap,
+            'calendarEvents' => $calendarEvents
         ]);
     }
 }
-

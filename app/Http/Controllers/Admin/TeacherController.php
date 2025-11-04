@@ -10,16 +10,26 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Carbon\Carbon; // Make sure to import Carbon
 
 class TeacherController extends Controller
 {
     /**
      * Display a listing of all teachers.
      */
-    public function index(): View
+    public function index()
     {
-        $teachers = User::where('role', 'teacher')->latest()->get();
-        return view('admin.teachers.index', compact('teachers'));
+        // THIS IS THE FIX:
+        // The index method should retrieve ALL teachers, not one.
+        // We also add pagination and client counts for a professional list.
+        $teachers = User::where('role', 'teacher')
+                        ->withCount('clients') // Gets the number of assigned clients
+                        ->orderBy('name')
+                        ->paginate(15); // Paginate the list
+
+        return view('admin.teachers.index', [
+            'teachers' => $teachers,
+        ]);
     }
 
     /**
@@ -54,16 +64,45 @@ class TeacherController extends Controller
     /**
      * Show the form for editing the specified teacher.
      */
-    public function edit(User $teacher): View
+    public function edit(Request $request, User $teacher) // Inject Request
     {
-        // THIS IS THE NEW LOGIC
-        // Fetch all clients to display in the checklist
-        $allClients = User::where('role', 'client')->orderBy('name')->get();
-        
-        // Get a simple array of IDs for the clients THIS teacher is already assigned to
-        $assignedClientIds = $teacher->clients->pluck('id')->toArray();
+        if (!$teacher->hasRole('teacher')) {
+            abort(404, 'User is not a teacher.');
+        }
 
-        return view('admin.teachers.edit', compact('teacher', 'allClients', 'assignedClientIds'));
+        // Get the search term from the request
+        $search = $request->input('search');
+
+        // 1. Get the IDs of clients currently assigned to this teacher
+        $assignedClientIds = $teacher->clients()->pluck('users.id')->toArray();
+
+        // 2. Get a paginated list of eligible clients
+        $eligibleClients = User::where('role', 'client')
+            ->whereHas('subscriptions', function ($query) {
+                // Client must have an active subscription
+                $query->where('status', 'active')
+                    ->where('ends_at', '>', now())
+                    ->whereColumn('lessons_used', '<', 'total_lessons');
+            })
+            ->when($search, function ($query, $term) {
+                // Apply the search query if it exists
+                // Group the search in a sub-query to not interfere with other 'where' clauses
+                $query->where(function ($subQuery) use ($term) {
+                    $subQuery->where('name', 'like', "%{$term}%")
+                             ->orWhere('email', 'like', "%{$term}%");
+                });
+            })
+            ->orderBy('name')
+            ->paginate(20) // Paginate the results
+            ->appends(['search' => $search]); // Ensure search query persists on pagination links
+
+        // 3. Pass all data to the view
+        return view('admin.teachers.edit', [
+            'teacher' => $teacher,
+            'eligibleClients' => $eligibleClients,
+            'assignedClientIds' => $assignedClientIds,
+            'search' => $search, // Pass the search term back to the view
+        ]);
     }
 
     /**

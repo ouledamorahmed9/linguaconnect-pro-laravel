@@ -1,68 +1,68 @@
 <?php
 
-    namespace App\Http\Controllers\Teacher;
+namespace App\Http\Controllers\Teacher;
 
-    use App\Http\Controllers\Controller;
-    use App\Models\Appointment;
-    use App\Models\User;
-    use Carbon\Carbon;
-    use Illuminate\Http\Request;
-    use Illuminate\Support\Facades\Auth;
-    use Illuminate\View\View;
-    use Illuminate\Http\RedirectResponse;
-    use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\Controller;
+use App\Models\Appointment;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
-    class AppointmentController extends Controller
+class AppointmentController extends Controller
+{
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
     {
-        /**
-         * Show the form for the teacher to create a new appointment.
-         */
-        public function create(): View
-        {
-            // THIS IS THE KEY PROFESSIONAL LOGIC:
-            // We fetch ONLY the clients that are assigned to the logged-in teacher.
-            $clients = Auth::user()->clients()->orderBy('name')->get();
-            
-            return view('teacher.appointments.create', compact('clients'));
-        }
+        // THIS VERSION INCLUDES THE FIX FOR THE "AMBIGUOUS ID" BUG
+        $teacher = Auth::user();
+        
+        // This uses the correct select() to avoid ambiguity
+        $clients = $teacher->clients()
+                           ->select('users.id', 'users.name')
+                           ->orderBy('name')
+                           ->get();
 
-        /**
-         * Store a newly created appointment in storage.
-         */
-        public function store(Request $request): RedirectResponse
-        {
-            $validated = $request->validate([
-                'client_id' => ['required', 'exists:users,id'],
-                'date' => ['required', 'date'],
-                'start_time' => ['required', 'date_format:H:i'],
-                'topic' => ['required', 'string', 'max:255'],
-            ]);
-            
-            // Professional Security Check: Ensure this teacher is allowed to book for this client
-            $assignedClientIds = Auth::user()->clients()->pluck('id')->toArray();
-            if (!in_array($validated['client_id'], $assignedClientIds)) {
-                // Throw a validation error if the teacher tries to book for an unassigned client
-                throw ValidationException::withMessages([
-                    'client_id' => 'You are not authorized to book an appointment for this client.',
-                ]);
-            }
-
-            $startTime = Carbon::parse($validated['date'] . ' ' . $validated['start_time']);
-            $endTime = $startTime->copy()->addHour(); // Assuming 1-hour lessons
-
-            // Create the appointment, automatically assigning it to the logged-in teacher
-            Appointment::create([
-                'client_id' => $validated['client_id'],
-                'teacher_id' => Auth::id(), // Assign to the logged-in teacher
-                'start_time' => $startTime,
-                'end_time' => $endTime,
-                'topic' => $validated['topic'],
-                'subject' => 'Unknown', // Placeholder
-                'status' => 'scheduled',
-            ]);
-
-            return redirect()->route('teacher.schedule.index')->with('status', 'Appointment booked successfully!');
-        }
+        return view('teacher.appointments.create', compact('clients'));
     }
-    
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        // THIS VERSION INCLUDES THE FIX FOR THE "AMBIGUOUS ID" BUG
+        $teacher = Auth::user();
+        
+        $validated = $request->validate([
+            'client_id' => [
+                'required',
+                'integer',
+                // This rule ensures a teacher can only book for their *own* clients
+                Rule::in($teacher->clients()->pluck('users.id')),
+            ],
+            'subject' => 'required|string|max:255',
+            'topic' => 'required|string|max:255',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'google_meet_link' => 'nullable|url',
+        ]);
+
+        // Add the authenticated teacher's ID
+        $validatedData = $validated + [
+            'teacher_id' => $teacher->id,
+            'status' => 'scheduled'
+        ];
+
+        Appointment::create($validatedData);
+
+        return redirect()->route('teacher.schedule.index')->with('status', 'تم حجز الموعد بنجاح!');
+    }
+}
 

@@ -82,7 +82,7 @@
                                         @if($subscription->plan_type === 'advanced') الباقة المتقدمة @endif
                                         @if($subscription->plan_type === 'intensive') الباقة المكثفة @endif
                                     </p>
-                                    <p class="text-sm text-gray-500 mt-2">تنتهي في: <span class="font-semibold">{{ \Carbon\Carbon::parse($subscription->ends_at)->translatedFormat('d M, Y') }}</span></p>
+                                    <p class="text-sm text-gray-500 mt-2">sتنتهي في: <span class="font-semibold">{{ \Carbon\Carbon::parse($subscription->ends_at)->translatedFormat('d M, Y') }}</span></p>
                                 </div>
 
                                 <h4 class="text-md font-semibold text-gray-800 mb-2">استهلاك الباقة</h4>

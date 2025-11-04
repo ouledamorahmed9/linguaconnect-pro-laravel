@@ -19,7 +19,7 @@ use App\Http\Controllers\Admin\SessionVerificationController;
 use App\Http\Controllers\Admin\DisputeController as AdminDisputeController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
 use App\Http\Controllers\Admin\TeacherClientController as AdminTeacherClientController;
-use App\Http\Controllers\Teacher\AppointmentController as TeacherAppointmentController; // Import new
+use App\Http\Controllers\Teacher\AppointmentController as TeacherAppointmentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -77,6 +77,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::delete('/clients/{client}', [AdminClientController::class, 'destroy'])->name('clients.destroy');
     Route::get('/clients/{client}/subscriptions/create', [AdminSubscriptionController::class, 'create'])->name('clients.subscriptions.create');
     Route::post('/clients/{client}/subscriptions', [AdminSubscriptionController::class, 'store'])->name('clients.subscriptions.store');
+    Route::delete('/subscriptions/{subscription}', [AdminSubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
 
     // Teacher Management
     Route::get('/teachers', [AdminTeacherController::class, 'index'])->name('teachers.index');
@@ -86,6 +87,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::patch('/teachers/{teacher}', [AdminTeacherController::class, 'update'])->name('teachers.update');
     Route::delete('/teachers/{teacher}', [AdminTeacherController::class, 'destroy'])->name('teachers.destroy');
     Route::post('/teachers/{teacher}/clients', [AdminTeacherClientController::class, 'sync'])->name('teachers.clients.sync');
+    Route::post('/teachers/{teacher}/clients/toggle', [AdminTeacherClientController::class, 'toggle'])->name('teachers.clients.toggle');
 
     // Schedule Management
     Route::get('/schedule', [AdminMasterScheduleController::class, 'index'])->name('schedule.index');
@@ -114,4 +116,3 @@ Route::middleware('auth')->group(function () {
 // Authentication Routes (Breeze)
 //======================================================================
 require __DIR__.'/auth.php';
-

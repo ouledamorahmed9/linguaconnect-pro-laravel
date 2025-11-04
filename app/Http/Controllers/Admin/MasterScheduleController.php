@@ -1,39 +1,71 @@
 <?php
 
-    namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin;
 
-    use App\Http\Controllers\Controller;
-    use App\Models\Appointment; // Import the Appointment model
-    use Carbon\Carbon;
-    use Illuminate\Http\Request;
-    use Illuminate\View\View;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\User;
+// We use the APPOINTMENT model for this version
+use App\Models\Appointment; 
+use Carbon\Carbon;
 
-    class MasterScheduleController extends Controller
+class MasterScheduleController extends Controller
+{
+    /**
+     * Display the master schedule of APPOINTMENTS for a given teacher.
+     */
+    public function index(Request $request)
     {
-        /**
-         * Display the master schedule.
-         */
-        public function index(): View
-        {
-            // Fetch appointments for the current week (e.g., from Monday to Sunday)
-            $startOfWeek = Carbon::now()->startOfWeek();
-            $endOfWeek = Carbon::now()->endOfWeek();
+        $teachers = User::where('role', 'teacher')->orderBy('name')->get();
+        $selectedTeacherId = $request->input('teacher_id');
+        $selectedTeacher = null;
+        $calendarEvents = [];
 
-            $appointments = Appointment::with(['teacher', 'client']) // Eager load relationships for efficiency
-                ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
-                ->orderBy('start_time')
-                ->get()
-                ->groupBy(function ($appointment) {
-                    // Group appointments by day for the calendar view
-                    return $appointment->start_time->translatedFormat('l, d');
+        if ($selectedTeacherId) {
+            $selectedTeacher = User::find($selectedTeacherId);
+
+            if ($selectedTeacher && $selectedTeacher->hasRole('teacher')) {
+                
+                // --- THIS IS THE ORIGINAL, WORKING LOGIC ---
+                // Fetch all appointments for this teacher
+                $appointments = Appointment::where('teacher_id', $selectedTeacherId)
+                    ->with('client') // Eager load the client's name
+                    ->where('start_time', '>', Carbon::now()->subMonths(3)) // Get recent & future
+                    ->get();
+
+                // Format for FullCalendar
+                $calendarEvents = $appointments->map(function ($appointment) {
+                    // Check if client exists to prevent errors
+                    $clientName = $appointment->client ? $appointment->client->name : 'عميل محذوف';
+                    
+                    return [
+                        'id' => $appointment->id,
+                        'title' => 'محجوز: ' . $clientName,
+                        'start' => $appointment->start_time->toIso8601String(),
+                        'end' => $appointment->end_time->toIso8601String(),
+                        'color' => '#dc2626', // Red for booked
+                        'allDay' => false,
+                        // Add extra data for the tooltip
+                        'clientName' => $clientName,
+                        'subject' => $appointment->topic,
+                    ];
                 });
+                // --- END OF ORIGINAL LOGIC ---
 
-            return view('admin.schedule.index', [
-                'calendarData' => $appointments,
-                'startOfWeek' => $startOfWeek,
-                'endOfWeek' => $endOfWeek,
-            ]);
+            } else {
+                // If ID is invalid, reset
+                $selectedTeacherId = null;
+            }
         }
-    }
-    
 
+        return view('admin.schedule.index', [
+            'teachers' => $teachers,
+            'selectedTeacherId' => $selectedTeacherId,
+            'selectedTeacher' => $selectedTeacher,
+            'calendarEvents' => json_encode($calendarEvents), // Pass as JSON
+        ]);
+    }
+
+    // --- We will not include store() or destroy() for this stable version ---
+    // --- We can add them again later ---
+}

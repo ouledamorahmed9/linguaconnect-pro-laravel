@@ -57,5 +57,24 @@ class SubscriptionController extends Controller
 
         return redirect()->route('admin.clients.edit', $client)->with('status', 'New subscription has been assigned successfully!');
     }
+
+    /**
+     * Remove the specified subscription from storage.
+     *
+     * @param  \App\Models\Subscription  $subscription
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(Subscription $subscription)
+    {
+        // Get the client ID before deleting, so we can redirect back
+        $clientId = $subscription->user_id;
+
+        // Delete the subscription
+        $subscription->delete();
+
+        // Redirect back to the client's edit page with a success message
+        return redirect()->route('admin.clients.edit', $clientId)
+                         ->with('status', 'Subscription cancelled successfully.');
+    }
 }
 
