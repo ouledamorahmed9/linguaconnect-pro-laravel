@@ -1,85 +1,117 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('مركز إدارة النزاعات (المفتوحة)') }}
+            {{ __('إدارة النزاعات') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            {{-- Display success/error messages --}}
-            @if(session('status'))
-                <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg" role="alert">
+            
+            <!-- Display Success or Error Messages -->
+            @if (session('status'))
+                <div class="mb-4 p-4 text-sm text-green-700 bg-green-100 rounded-lg" role="alert">
                     {{ session('status') }}
                 </div>
             @endif
-             @if(session('error'))
-                <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
-                    {{ session('error') }}
+            @if ($errors->any())
+                <div class="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+                    <strong>خطأ!</strong> {{ $errors->first('message') }}
                 </div>
             @endif
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <p class="text-gray-600 mb-6">
-                        يرجى مراجعة هذه الجلسات المتنازع عليها واتخاذ إجراء لحلها.
-                    </p>
+                <div class="p-6 md:p-8 text-gray-900">
+                    <h3 class="text-lg font-semibold mb-6 border-b pb-3">النزاعات المفتوحة</h3>
 
-                    @if($openDisputes->isEmpty())
-                        <div class="text-center py-12 bg-gray-50 rounded-lg">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <h3 class="mt-2 text-sm font-semibold text-gray-900">لا توجد نزاعات مفتوحة</h3>
-                            <p class="mt-1 text-sm text-gray-500">كل شيء يبدو جيداً هنا.</p>
-                        </div>
+                    @if($disputes->isEmpty())
+                        <p class="text-center text-gray-500 py-10">
+                            لا يوجد أي نزاعات مفتوحة حاليًا.
+                        </p>
                     @else
-                        <div class="space-y-6">
-                            @foreach ($openDisputes as $dispute)
-                                <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-                                    <div class="p-6">
-                                        <div class="flex flex-col md:flex-row md:justify-between">
-                                            <div>
-                                                <h3 class="text-lg font-bold text-gray-900">
-                                                    جلسة: {{ $dispute->appointment->topic }}
-                                                </h3>
-                                                <p class="text-sm text-gray-600">
-                                                    <strong>المعلم:</strong> {{ $dispute->appointment->teacher->name }} | 
-                                                    <strong>العميل:</strong> {{ $dispute->appointment->client->name }}
-                                                </p>
-                                                <p class="text-sm text-gray-500">
-                                                    {{ $dispute->appointment->start_time->translatedFormat('d M, Y \a\t h:i A') }}
-                                                </p>
-                                            </div>
-                                            <div class="mt-4 md:mt-0 md:text-left">
-                                                <p class="text-xs text-red-700">
-                                                    تم فتح النزاع بواسطة: <strong>{{ $dispute->admin->name }}</strong>
-                                                </p>
-                                                <p class="text-xs text-gray-500">
-                                                    في: {{ $dispute->created_at->translatedFormat('d M, Y') }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                            <p class="text-sm font-semibold text-red-800">سبب النزاع:</p>
-                                            <p class="text-sm text-red-700">{{ $dispute->reason }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="bg-gray-50 px-6 py-3 flex justify-end space-x-3">
-                                        <!-- CANCEL SESSION FORM -->
-                                        <form action="{{ route('admin.disputes.cancel', $dispute) }}" method="POST" onsubmit="return confirm('هل أنت متأكد من رغبتك في إلغاء هذه الحصة؟ لن يتم احتسابها للعميل أو المعلم.');">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-md hover:bg-red-700">إلغاء الحصة</button>
-                                        </form>
-                                        
-                                        <!-- RESOLVE & VERIFY SESSION FORM -->
-                                        <form action="{{ route('admin.disputes.resolve', $dispute) }}" method="POST" onsubmit="return confirm('هل أنت متأكد من رغبتك في التحقق من هذه الحصة واحتسابها؟');">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-md hover:bg-green-700">تم الحل (تحقق من الجلسة)</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            @endforeach
+                        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            تاريخ الحصة
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            العميل / المعلم
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            حالة الحصة (من المعلم)
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            سبب النزاع (من المدير)
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            الإجراءات
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach($disputes as $dispute)
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ \Carbon\Carbon::parse($dispute->appointment->start_time)->translatedFormat('l, d F Y') }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                <div class="font-medium text-gray-900">{{ $dispute->appointment->client->name }}</div>
+                                                <div class="text-gray-500">{{ $dispute->appointment->teacher->name }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                @if($dispute->appointment->completion_status == 'completed')
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                        مكتملة
+                                                    </span>
+                                                @elseif($dispute->appointment->completion_status == 'student_absent')
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                        الطالب لم يحضر
+                                                    </span>
+                                                @elseif($dispute->appointment->completion_status == 'technical_issue')
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                        مشكلة تقنية
+                                                    </span>
+                                                @else
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                        -
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ $dispute->reason }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 rtl:space-x-reverse">
+                                                
+                                                <!-- === ACTION 1: RESOLVE (APPROVE) === -->
+                                                <form method="POST" action="{{ route('admin.disputes.resolve', $dispute) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من حل هذا النزاع والموافقة على الحصة؟ سيتم احتساب الحصة من رصيد العميل.');">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="text-green-600 hover:text-green-900">
+                                                        حل (موافقة)
+                                                    </button>
+                                                </form>
+
+                                                <!-- === ACTION 2: CANCEL (REFUSE) === -->
+                                                <form method="POST" action="{{ route('admin.disputes.cancel', $dispute) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من حل هذا النزاع وتأكيد رفض الحصة؟ لن يتم احتساب الحصة.');">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="text-red-600 hover:text-red-900">
+                                                        حل (رفض)
+                                                    </button>
+                                                </form>
+
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="mt-6">
+                            {{ $disputes->links() }}
                         </div>
                     @endif
                 </div>
@@ -87,4 +119,3 @@
         </div>
     </div>
 </x-app-layout>
-
