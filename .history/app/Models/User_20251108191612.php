@@ -1,20 +1,21 @@
 <?php
 
-namespace App\Models;
+namespace App\Models;// Based on your file, the namespace is App
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail; // This was in your file, let's re-enable it
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use App\Models\Subscription;
-use App\Models\Appointment;
-use Carbon\Carbon; // <-- ** ADDED THIS IMPORT **
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; // Import the BelongsToMany relationship
+use App\Models\Subscription; // Ensure Subscription model is imported
+use App\Models\Appointment; // Ensure Appointment model is imported
+use Carbon\Carbon; // <-- ** ADD THIS IMPORT **
 
+// We will implement MustVerifyEmail as it's a professional standard
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable; // HasApiTokens is often for APIs, we'll stick to web auth
 
     /**
      * The attributes that are mass assignable.
@@ -25,8 +26,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'role',
-        'subject',
+        'role', // Add 'role' to allow it to be set during creation
+        'subject', // <-- ** ADD THIS LINE **
     ];
 
     /**
@@ -48,7 +49,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password' => 'hashed', // Add this for professional security
         ];
     }
 
@@ -96,8 +97,7 @@ class User extends Authenticatable implements MustVerifyEmail
         // This is the single source of truth for subscription status.
         return $this->activeSubscriptions()->exists();
     }
-
-
+    
     /**
      * Get the appointments for this user (either as a client or teacher).
      */
@@ -110,11 +110,16 @@ class User extends Authenticatable implements MustVerifyEmail
         }
     }
 
+    // === NEW PROFESSIONAL RELATIONSHIPS ===
+
     /**
      * Get the clients that are assigned to this user (teacher).
      */
     public function clients(): BelongsToMany
     {
+        // 'client_teacher' is the pivot table name
+        // 'user_id' is the foreign key for the User model (the Teacher)
+        // 'client_id' is the foreign key for the related model (the Client)
         return $this->belongsToMany(User::class, 'client_teacher', 'user_id', 'client_id');
     }
 
@@ -123,6 +128,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function teachers(): BelongsToMany
     {
+        // Here, the keys are swapped to define the inverse relationship
         return $this->belongsToMany(User::class, 'client_teacher', 'client_id', 'user_id');
     }
 }
+
