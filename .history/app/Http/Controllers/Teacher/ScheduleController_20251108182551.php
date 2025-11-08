@@ -7,49 +7,55 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\WeeklySlot;
 use App\Models\Appointment; 
+use App\Models\User; // <-- ** Import User model **
 use Carbon\Carbon;
-use Illuminate\Validation\Rule; // <-- ** STEP 1: Import Rule **
+use Illuminate\Validation\Rule;
 
 class ScheduleController extends Controller
 {
     /**
      * Display the teacher's new weekly schedule (roster).
-     * (This index method is already correct and unchanged)
      */
     public function index()
     {
         $teacher = Auth::user();
 
-        // 1. Get all weekly slots for this teacher (for the LIST view)
-        $weeklySlots = WeeklySlot::where('teacher_id', $teacher->id)
-            ->with('client') 
-            ->orderBy('day_of_week', 'asc')
-            ->orderBy('start_time', 'asc')
-            ->get()
-            ->groupBy('day_of_week');
+        // Get all weekly slots (we need all, even inactive, to show them in red)
+        $allSlots = WeeklySlot::where('teacher_id', $teacher->id)
+                              ->with('client.subscriptions', 'teacher') // Eager load for performance
+                              ->get();
 
-        // 2. Get appointments logged THIS WEEK (for the LIST view 'smart' button)
+        // ** MODIFICATION 1: Check subscription status for each slot **
+        $allSlots->each(function($slot) {
+            // Check if client exists before checking subscription
+            $slot->hasActiveSubscription = $slot->client ? $slot->client->hasActiveSubscription() : false;
+        });
+        
+        // Group for the LIST view
+        $weeklySlots = $allSlots->sortBy([
+                                    ['client.name', 'asc'],
+                                    ['day_of_week', 'asc'],
+                                    ['start_time', 'asc'],
+                                ])
+                                ->groupBy('day_of_week'); // Group by day for the list
+
+        // Get appointments logged THIS WEEK (for 'smart' button)
         $startOfWeek = Carbon::now()->startOfWeek(Carbon::MONDAY);
         $endOfWeek = Carbon::now()->endOfWeek(Carbon::SUNDAY);
-
         $loggedAppointments = Appointment::where('teacher_id', $teacher->id)
             ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
             ->get();
 
-        // 3. Create a fast lookup array for the view
         $loggedSlotsLookup = [];
         foreach ($loggedAppointments as $appointment) {
             $dayOfWeek = $appointment->start_time->dayOfWeek; 
             $startTime = $appointment->start_time->format('H:i:s');
             $clientId = $appointment->client_id;
-            
             $key = "{$clientId}-{$dayOfWeek}-{$startTime}";
             $loggedSlotsLookup[$key] = true;
         }
         
-        // --- Logic for Graphical Calendar (existing) ---
-        $allSlots = $weeklySlots->flatten();
-        
+        // ** MODIFICATION 2: Set calendar color based on subscription status **
         $calendarEvents = $allSlots->map(function ($slot) {
             $clientName = $slot->client ? $slot->client->name : 'عميل غير محدد';
             $subject = $slot->teacher->subject ?? 'حصة';
@@ -60,41 +66,36 @@ class ScheduleController extends Controller
                 'daysOfWeek' => [$slot->day_of_week], 
                 'startTime' => $slot->start_time,
                 'endTime' => $slot->end_time,
-                'color' => '#4f46e5',
+                'color' => $slot->hasActiveSubscription ? '#4f46e5' : '#dc2626', // Indigo if active, Red if not
                 'allDay' => false,
                 'clientName' => $clientName, 
                 'subject' => $subject,
+                'hasActiveSubscription' => $slot->hasActiveSubscription, // Pass status to tooltip
             ];
         });
-        // --- End of Calendar Logic ---
 
-        // 4. Helper array for day names (as before)
-        $daysOfWeek = [
-            1 => 'الاثنين',
-            2 => 'الثلاثاء',
-            3 => 'الأربعاء',
-            4 => 'الخميس',
-            5 => 'الجمعة',
-            6 => 'السبت',
-            0 => 'الأحد',
-        ];
+        // Helper array for day names (as before)
+        $daysOfWeek = [ 1 => 'الاثنين', 2 => 'الثلاثاء', 3 => 'الأربعاء', 4 => 'الخميس', 5 => 'الجمعة', 6 => 'السبت', 0 => 'الأحد' ];
         
-        // ** STEP 2: Get clients assigned to this teacher (for the new form dropdown) **
-        $clients = $teacher->clients()->orderBy('name')->get();
+        // ** MODIFICATION 3: Get only clients with active subscriptions for the dropdown **
+        // 1. Get ALL assigned clients
+        $allClients = $teacher->clients()->with('subscriptions')->orderBy('name')->get();
+                
+        // 2. Filter them in PHP to get ONLY active clients
+        $clients = $allClients->filter(function ($client) {
+            return $client->hasActiveSubscription();
+        });
 
         return view('teacher.schedule.index', [
             'weeklySlots' => $weeklySlots,
             'daysOfWeek' => $daysOfWeek,
             'loggedSlotsLookup' => $loggedSlotsLookup, 
             'calendarEvents' => json_encode($calendarEvents),
-            'clients' => $clients, // <-- ** STEP 3: Pass clients to the view **
+            'clients' => $clients, // Pass this new filtered list
         ]);
     }
 
     /**
-     * ---
-     * **STEP 4: ADD NEW 'store' METHOD**
-     * ---
      * Store a new weekly slot in the database.
      */
     public function store(Request $request)
@@ -109,13 +110,20 @@ class ScheduleController extends Controller
                 Rule::in($teacher->clients()->pluck('users.id'))
             ],
             'day_of_week' => 'required|integer|between:0,6',
-            'start_time' => 'required|date_format:H:i', // Expects "HH:MM" format
+            'start_time' => 'required|date_format:H:i',
         ]);
+
+        // --- ** NEW PROFESSIONAL CHECK ** ---
+        // Block creating a slot for a client with no active subscription
+        $client = User::find($validated['client_id']);
+        if (!$client || !$client->hasActiveSubscription()) {
+             return redirect()->back()->withInput()->withErrors(['client_id' => 'لا يمكن إضافة حصة لعميل ليس لديه اشتراك نشط.']);
+        }
+        // --- ** END OF CHECK ** ---
     
         $startTime = Carbon::parse($validated['start_time']);
-        $endTime = $startTime->copy()->addHour(); // All lessons are 1 hour
+        $endTime = $startTime->copy()->addHour();
     
-        // Professional Check: Does this slot overlap?
         $isOverlap = WeeklySlot::where('teacher_id', $teacher->id) // Only check this teacher's slots
             ->where('day_of_week', $validated['day_of_week'])
             ->where(function($query) use ($startTime, $endTime) {
@@ -135,7 +143,6 @@ class ScheduleController extends Controller
             return redirect()->back()->withErrors(['message' => 'This time slot overlaps with an existing weekly slot.']);
         }
     
-        // Create the new slot
         WeeklySlot::create([
             'teacher_id' => $teacher->id, // Use authenticated teacher's ID
             'client_id' => $validated['client_id'],
@@ -148,9 +155,6 @@ class ScheduleController extends Controller
     }
 
     /**
-     * ---
-     * **STEP 5: ADD NEW 'destroy' METHOD**
-     * ---
      * Remove the specified weekly slot from storage.
      */
     public function destroy(WeeklySlot $weeklySlot)
