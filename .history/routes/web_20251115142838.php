@@ -153,10 +153,7 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::get('/teachers/{teacher}/edit', [CoordinatorTeacherController::class, 'edit'])->name('teachers.edit');
     Route::post('/teachers/{teacher}/clients/toggle', [CoordinatorClientTeacherController::class, 'toggle'])->name('teachers.clients.toggle');
 
-    // Coordinator Roster Management (الجدول الأسبوعي)
-    Route::get('/roster', [CoordinatorWeeklySlotController::class, 'index'])->name('roster.index');
-    Route::post('/roster', [CoordinatorWeeklySlotController::class, 'store'])->name('roster.store');
-    Route::delete('/roster/{weeklySlot}', [CoordinatorWeeklySlotController::class, 'destroy'])->name('roster.destroy');
+
 
 });
 

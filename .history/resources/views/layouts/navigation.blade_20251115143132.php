@@ -184,9 +184,7 @@
                 <x-responsive-nav-link :href="route('coordinator.teachers.index')" :active="request()->routeIs('coordinator.teachers.index')">
                     إدارة المعلمين
                 </x-responsive-nav-link>                
-                <x-responsive-nav-link :href="route('coordinator.roster.index')" :active="request()->routeIs('coordinator.roster.index')">
-                    إدارة الجدول الأسبوعي
-                </x-responsive-nav-link>
+
 
             <!-- Teacher Links -->
             @elseif(Auth::user()->hasRole('teacher'))

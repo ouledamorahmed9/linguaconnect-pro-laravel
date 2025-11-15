@@ -26,12 +26,7 @@ use App\Http\Controllers\Teacher\LessonHistoryController;
 
 use App\Http\Controllers\Teacher\AppointmentController as TeacherAppointmentController; // <-- No longer used
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Coordinator\DashboardController as CoordinatorDashboardController;
-use App\Http\Controllers\Coordinator\ClientController as CoordinatorClientController;
-use App\Http\Controllers\Coordinator\SubscriptionController as CoordinatorSubscriptionController;
-use App\Http\Controllers\Coordinator\TeacherController as CoordinatorTeacherController;
-use App\Http\Controllers\Coordinator\ClientTeacherController as CoordinatorClientTeacherController;
-use App\Http\Controllers\Coordinator\WeeklySlotController as CoordinatorWeeklySlotController;
+
 use App\Http\Controllers\Api\MeetReportController;
 
 /*
@@ -127,37 +122,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 
     // Session & Dispute Management
     Route::get('/sessions/verify', [SessionVerificationController::class, 'index'])->name('sessions.verify.index');
-});
-
-//======================================================================
-// Authenticated Coordinator Routes
-//======================================================================
-Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator')->name('coordinator.')->group(function () {
-    Route::get('/dashboard', [CoordinatorDashboardController::class, 'index'])->name('dashboard');
-
-    // Coordinator Client Management
-    Route::get('/clients', [CoordinatorClientController::class, 'index'])->name('clients.index');
-    Route::get('/clients/create', [CoordinatorClientController::class, 'create'])->name('clients.create');
-    Route::post('/clients', [CoordinatorClientController::class, 'store'])->name('clients.store');
-    Route::get('/clients/{client}/edit', [CoordinatorClientController::class, 'edit'])->name('clients.edit');
-    Route::patch('/clients/{client}', [CoordinatorClientController::class, 'update'])->name('clients.update');
-    
-    Route::delete('/clients/{client}', [CoordinatorClientController::class, 'destroy'])->name('clients.destroy');
-    // Coordinator Subscription Management
-    Route::get('/clients/{client}/subscriptions/create', [CoordinatorSubscriptionController::class, 'create'])->name('clients.subscriptions.create');
-    Route::post('/clients/{client}/subscriptions', [CoordinatorSubscriptionController::class, 'store'])->name('clients.subscriptions.store');
-    Route::delete('/subscriptions/{subscription}', [CoordinatorSubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
-
-    // Coordinator Teacher Management (ربط العملاء بالمعلمين)
-    Route::get('/teachers', [CoordinatorTeacherController::class, 'index'])->name('teachers.index');
-    Route::get('/teachers/{teacher}/edit', [CoordinatorTeacherController::class, 'edit'])->name('teachers.edit');
-    Route::post('/teachers/{teacher}/clients/toggle', [CoordinatorClientTeacherController::class, 'toggle'])->name('teachers.clients.toggle');
-
-    // Coordinator Roster Management (الجدول الأسبوعي)
-    Route::get('/roster', [CoordinatorWeeklySlotController::class, 'index'])->name('roster.index');
-    Route::post('/roster', [CoordinatorWeeklySlotController::class, 'store'])->name('roster.store');
-    Route::delete('/roster/{weeklySlot}', [CoordinatorWeeklySlotController::class, 'destroy'])->name('roster.destroy');
-
 });
 
 //======================================================================

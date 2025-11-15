@@ -12,7 +12,6 @@ use App\Models\Subscription;
 use App\Models\Appointment;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage; // <-- ** 1. أضف هذا السطر **
-use Illuminate\Database\Eloquent\Relations\BelongsTo; // ** تأكد من إضافة هذا السطر **
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -30,7 +29,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'subject',
         'profile_photo_path', // <-- ** 2. أضف هذا السطر **
-        'created_by_user_id',
     ];
 
     /**

@@ -31,7 +31,6 @@ use App\Http\Controllers\Coordinator\ClientController as CoordinatorClientContro
 use App\Http\Controllers\Coordinator\SubscriptionController as CoordinatorSubscriptionController;
 use App\Http\Controllers\Coordinator\TeacherController as CoordinatorTeacherController;
 use App\Http\Controllers\Coordinator\ClientTeacherController as CoordinatorClientTeacherController;
-use App\Http\Controllers\Coordinator\WeeklySlotController as CoordinatorWeeklySlotController;
 use App\Http\Controllers\Api\MeetReportController;
 
 /*
@@ -141,7 +140,6 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::post('/clients', [CoordinatorClientController::class, 'store'])->name('clients.store');
     Route::get('/clients/{client}/edit', [CoordinatorClientController::class, 'edit'])->name('clients.edit');
     Route::patch('/clients/{client}', [CoordinatorClientController::class, 'update'])->name('clients.update');
-    
     Route::delete('/clients/{client}', [CoordinatorClientController::class, 'destroy'])->name('clients.destroy');
     // Coordinator Subscription Management
     Route::get('/clients/{client}/subscriptions/create', [CoordinatorSubscriptionController::class, 'create'])->name('clients.subscriptions.create');
@@ -152,12 +150,7 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::get('/teachers', [CoordinatorTeacherController::class, 'index'])->name('teachers.index');
     Route::get('/teachers/{teacher}/edit', [CoordinatorTeacherController::class, 'edit'])->name('teachers.edit');
     Route::post('/teachers/{teacher}/clients/toggle', [CoordinatorClientTeacherController::class, 'toggle'])->name('teachers.clients.toggle');
-
-    // Coordinator Roster Management (الجدول الأسبوعي)
-    Route::get('/roster', [CoordinatorWeeklySlotController::class, 'index'])->name('roster.index');
-    Route::post('/roster', [CoordinatorWeeklySlotController::class, 'store'])->name('roster.store');
-    Route::delete('/roster/{weeklySlot}', [CoordinatorWeeklySlotController::class, 'destroy'])->name('roster.destroy');
-
+    // --- ** انتهت الإضافة ** ---
 });
 
 //======================================================================

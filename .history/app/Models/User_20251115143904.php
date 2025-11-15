@@ -30,7 +30,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'subject',
         'profile_photo_path', // <-- ** 2. أضف هذا السطر **
-        'created_by_user_id',
     ];
 
     /**

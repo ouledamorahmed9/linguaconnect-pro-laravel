@@ -29,9 +29,7 @@ class RedirectIfAuthenticated
                 if ($user->hasRole('admin')) {
                     return redirect()->route('admin.dashboard');
                 }
-                if ($user->hasRole('coordinator')) {
-                    return redirect()->route('coordinator.dashboard');
-                }
+                
                 if ($user->hasRole('teacher')) {
                     return redirect()->route('teacher.dashboard');
                 }

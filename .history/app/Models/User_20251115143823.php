@@ -8,11 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // ** تأكد من إضافة هذا السطر **
 use App\Models\Subscription;
 use App\Models\Appointment;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Storage; // <-- ** 1. أضف هذا السطر **
-use Illuminate\Database\Eloquent\Relations\BelongsTo; // ** تأكد من إضافة هذا السطر **
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -29,8 +29,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'subject',
-        'profile_photo_path', // <-- ** 2. أضف هذا السطر **
-        'created_by_user_id',
+        'profile_photo_path',
+        'created_by_user_id', // <-- ** هذا هو السطر الجديد الذي يحل المشكلة **
     ];
 
     /**
@@ -73,11 +73,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * ---
-     * ** NEW PROFESSIONAL RELATIONSHIP **
-     * ---
      * Get only the *active* subscriptions for the user (client).
-     * An active subscription is not expired and has remaining lessons.
      */
     public function activeSubscriptions(): HasMany
     {
@@ -88,9 +84,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * ---
-     * ** NEW PROFESSIONAL METHOD **
-     * ---
      * Check if the user (client) has at least one active subscription
      * with remaining lesson credits.
      */
@@ -128,11 +121,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(User::class, 'client_teacher', 'client_id', 'user_id');
     }
 
-    // <-- ** 3. أضف هذه الدالة الجديدة هنا **
     /**
      * Get the URL for the user's profile photo.
-     *
-     * @return string
      */
     public function getProfilePhotoUrlAttribute()
     {
@@ -140,7 +130,6 @@ class User extends Authenticatable implements MustVerifyEmail
             return Storage::url($this->profile_photo_path);
         }
 
-        // إذا لم يكن لدى المستخدم صورة، نستخدم خدمة مجانية لإنشاء صورة من حروف اسمه
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
     }
 
@@ -154,7 +143,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * علاقة لجلب "كل العملاء" الذين يديرهم هذا المنسق
-     * (قمنا بتسميتها 'managedClients' لتجنب التعارض مع علاقة 'clients' الخاصة بالمعلم)
      */
     public function managedClients(): HasMany
     {

@@ -12,7 +12,6 @@ use App\Models\Subscription;
 use App\Models\Appointment;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage; // <-- ** 1. أضف هذا السطر **
-use Illuminate\Database\Eloquent\Relations\BelongsTo; // ** تأكد من إضافة هذا السطر **
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -30,7 +29,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'subject',
         'profile_photo_path', // <-- ** 2. أضف هذا السطر **
-        'created_by_user_id',
     ];
 
     /**
@@ -142,22 +140,5 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // إذا لم يكن لدى المستخدم صورة، نستخدم خدمة مجانية لإنشاء صورة من حروف اسمه
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
-    }
-
-    /**
-     * علاقة لجلب "المنشئ" (المنسق) الخاص بهذا العميل
-     */
-    public function coordinator(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by_user_id');
-    }
-
-    /**
-     * علاقة لجلب "كل العملاء" الذين يديرهم هذا المنسق
-     * (قمنا بتسميتها 'managedClients' لتجنب التعارض مع علاقة 'clients' الخاصة بالمعلم)
-     */
-    public function managedClients(): HasMany
-    {
-        return $this->hasMany(User::class, 'created_by_user_id');
     }
 }

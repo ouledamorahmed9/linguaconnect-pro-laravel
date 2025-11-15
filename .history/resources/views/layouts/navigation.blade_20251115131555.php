@@ -34,9 +34,7 @@
                         <x-nav-link :href="route('admin.teachers.index')" :active="request()->routeIs('admin.teachers.index')">
                             إدارة المعلمين
                         </x-nav-link>
-                        <x-nav-link :href="route('admin.coordinators.index')" :active="request()->routeIs('admin.coordinators.index')">
-                            إدارة المنسقين
-                        </x-nav-link>
+                        
                         <x-nav-link :href="route('admin.roster.index')" :active="request()->routeIs('admin.roster.index')">
                             إدارة الجدول الأسبوعي
                         </x-nav-link>
@@ -46,23 +44,7 @@
                         <x-nav-link :href="route('admin.disputes.index')" :active="request()->routeIs('admin.disputes.index')">
                             إدارة النزاعات
                         </x-nav-link>
-
-                    <!-- coordinator Links -->
-                    @elseif(Auth::user()->hasRole('coordinator'))
-                            <x-nav-link :href="route('coordinator.dashboard')" :active="request()->routeIs('coordinator.dashboard')">
-                                لوحة التحكم
-                            </x-nav-link>
-                            
-                            <x-nav-link :href="route('coordinator.clients.index')" :active="request()->routeIs('coordinator.clients.index')">
-                                إدارة عملائي
-                            </x-nav-link>
-
-                            <x-nav-link :href="route('coordinator.teachers.index')" :active="request()->routeIs('coordinator.teachers.index')">
-                                إدارة المعلمين
-                            </x-nav-link>
-                            <x-nav-link :href="route('coordinator.roster.index')" :active="request()->routeIs('coordinator.roster.index')">
-                                إدارة الجدول الأسبوعي
-                            </x-nav-link>
+                    
                     <!-- Teacher Links -->
                     @elseif(Auth::user()->hasRole('teacher'))
                         <x-nav-link :href="route('teacher.dashboard')" :active="request()->routeIs('teacher.dashboard')">
@@ -158,9 +140,6 @@
                 <x-responsive-nav-link :href="route('admin.teachers.index')" :active="request()->routeIs('admin.teachers.index')">
                     إدارة المعلمين
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.coordinators.index')" :active="request()->routeIs('admin.coordinators.index')">
-                    إدارة المنسقين
-                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.roster.index')" :active="request()->routeIs('admin.roster.index')">
                     إدارة الجدول الأسبوعي
                 </x-responsive-nav-link>
@@ -171,23 +150,6 @@
                     إدارة النزاعات
                 </x-responsive-nav-link>
             
-            <!-- coordinator Links -->
-            @elseif(Auth::user()->hasRole('coordinator'))
-                <x-responsive-nav-link :href="route('coordinator.dashboard')" :active="request()->routeIs('coordinator.dashboard')">
-                    لوحة التحكم
-                </x-responsive-nav-link>
-                
-                <x-responsive-nav-link :href="route('coordinator.clients.index')" :active="request()->routeIs('coordinator.clients.index')">
-                    إدارة عملائي
-                </x-responsive-nav-link>
-
-                <x-responsive-nav-link :href="route('coordinator.teachers.index')" :active="request()->routeIs('coordinator.teachers.index')">
-                    إدارة المعلمين
-                </x-responsive-nav-link>                
-                <x-responsive-nav-link :href="route('coordinator.roster.index')" :active="request()->routeIs('coordinator.roster.index')">
-                    إدارة الجدول الأسبوعي
-                </x-responsive-nav-link>
-
             <!-- Teacher Links -->
             @elseif(Auth::user()->hasRole('teacher'))
                 <x-responsive-nav-link :href="route('teacher.dashboard')" :active="request()->routeIs('teacher.dashboard')">
