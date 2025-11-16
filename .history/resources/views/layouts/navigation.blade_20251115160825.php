@@ -173,9 +173,6 @@
                 <x-responsive-nav-link :href="route('admin.disputes.index')" :active="request()->routeIs('admin.disputes.index')">
                     إدارة النزاعات
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.activity-log.index')" :active="request()->routeIs('admin.activity-log.index')">
-                    سجل الأنشطة
-                </x-responsive-nav-link>
             
             <!-- coordinator Links -->
             @elseif(Auth::user()->hasRole('coordinator'))

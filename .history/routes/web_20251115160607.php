@@ -32,7 +32,7 @@ use App\Http\Controllers\Coordinator\SubscriptionController as CoordinatorSubscr
 use App\Http\Controllers\Coordinator\TeacherController as CoordinatorTeacherController;
 use App\Http\Controllers\Coordinator\ClientTeacherController as CoordinatorClientTeacherController;
 use App\Http\Controllers\Coordinator\WeeklySlotController as CoordinatorWeeklySlotController;
-use App\Http\Controllers\Admin\ActivityLogController;
+zuse App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Api\MeetReportController;
 
 /*
@@ -118,9 +118,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');
     Route::patch('/disputes/{dispute}/resolve', [AdminDisputeController::class, 'resolve'])->name('disputes.resolve');
     Route::patch('/disputes/{dispute}/cancel', [AdminDisputeController::class, 'cancel'])->name('disputes.cancel');
-// --- ** ابدأ الإضافة من هنا ** ---
-    Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
-    // --- ** انتهت الإضافة ** ---
+
     // Coordinator Management (إدارة المنسقين)
     Route::get('/coordinators', [\App\Http\Controllers\Admin\CoordinatorController::class, 'index'])->name('coordinators.index');
     Route::get('/coordinators/create', [\App\Http\Controllers\Admin\CoordinatorController::class, 'create'])->name('coordinators.create');

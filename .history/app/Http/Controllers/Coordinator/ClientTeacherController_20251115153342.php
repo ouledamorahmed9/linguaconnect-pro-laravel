@@ -46,28 +46,12 @@ class ClientTeacherController extends Controller
             }
             
             $teacher->clients()->syncWithoutDetaching([$client->id]);
-// --- ** ابدأ الإضافة هنا ** ---
-            activity()
-                ->causedBy($coordinator)
-                ->performedOn($client)
-                ->withProperties(['teacher_name' => $teacher->name])
-                ->log("ربط العميل {$client->name} بالمعلم {$teacher->name}");
-            // --- ** انتهت الإضافة ** ---
-
             return response()->json(['status' => 'attached', 'message' => 'Client assigned.']);
 
         } else {
             // المنسق يريد "إزالة" العميل من المعلم
             $teacher->clients()->detach($client->id);
-
-            // --- ** ابدأ الإضافة هنا ** ---
-            activity()
-                ->causedBy($coordinator)
-                ->performedOn($client)
-                ->withProperties(['teacher_name' => $teacher->name])
-                ->log("أزال ربط العميل {$client->name} من المعلم {$teacher->name}");
-            // --- ** انتهت الإضافة ** ---
-
-            return response()->json(['status' => 'detached', 'message' => 'Client unassigned.']);        }
+            return response()->json(['status' => 'detached', 'message' => 'Client unassigned.']);
+        }
     }
 }

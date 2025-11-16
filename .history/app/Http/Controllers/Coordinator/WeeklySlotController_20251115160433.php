@@ -145,14 +145,7 @@ class WeeklySlotController extends Controller
             'start_time' => $startTime->format('H:i:s'),
             'end_time' => $endTime->format('H:i:s'),
         ]);
-        // --- ** ابدأ الإضافة هنا ** ---
-        $teacher = User::find($validated['teacher_id']);
-        activity()
-            ->causedBy($coordinator)
-            ->performedOn($client)
-            ->withProperties(['teacher_name' => $teacher->name, 'day' => $validated['day_of_week'], 'time' => $validated['start_time']])
-            ->log("أنشأ حصة أسبوعية للعميل {$client->name} مع المعلم {$teacher->name}");
-        // --- ** انتهت الإضافة ** ---
+        
     
         return redirect()->back()->with('status', 'تمت إضافة الحصة الأسبوعية بنجاح.');
     }
@@ -168,17 +161,7 @@ class WeeklySlotController extends Controller
         if ($weeklySlot->client->created_by_user_id !== $coordinator->id) {
             abort(403, 'لا يمكنك حذف حصص لعملاء لا تديرهم.');
         }
-        
-        // --- ** ابدأ الإضافة هنا ** ---
-        $clientName = $weeklySlot->client->name;
-        $teacherName = $weeklySlot->teacher->name;
-        activity()
-            ->causedBy($coordinator)
-            ->performedOn($weeklySlot->client) // ربط النشاط بالعميل
-            ->withProperties(['teacher_name' => $teacherName, 'day' => $weeklySlot->day_of_week, 'time' => $weeklySlot->start_time])
-            ->log("حذف حصة أسبوعية للعميل {$clientName} مع المعلم {$teacherName}");
-        // --- ** انتهت الإضافة ** ---
-        
+
         $weeklySlot->delete();
         return redirect()->back()->with('status', 'تم حذف الحصة الأسبوعية.');
     }

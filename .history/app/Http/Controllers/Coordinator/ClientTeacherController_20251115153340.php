@@ -68,6 +68,5 @@ class ClientTeacherController extends Controller
                 ->log("أزال ربط العميل {$client->name} من المعلم {$teacher->name}");
             // --- ** انتهت الإضافة ** ---
 
-            return response()->json(['status' => 'detached', 'message' => 'Client unassigned.']);        }
-    }
+            return response()->json(['status' => 'detached', 'message' => 'Client unassigned.']);    }
 }
