@@ -93,10 +93,7 @@ class SessionVerificationController extends Controller
         // If successful, send a success message
         return redirect()->route('admin.sessions.verify.index')->with('status', 'تمت مراجعة الحصة بنجاح.');
     }
-    /**
-     * إلغاء الحصة بشكل نهائي
-     * (Hard Reject)
-     */
+    
     public function cancel(Request $request, Appointment $appointment)
     {
         // 1. التأكد أن الحصة بانتظار المراجعة

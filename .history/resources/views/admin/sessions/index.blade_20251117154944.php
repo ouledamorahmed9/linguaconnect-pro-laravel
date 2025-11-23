@@ -38,11 +38,10 @@
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             المعلم
                                         </th>
-                                        
+
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             مدار بواسطة
                                         </th>
-
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             تاريخ الحصة
                                         </th>
@@ -59,9 +58,7 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($sessions as $session)
-                                    
-                                        <tr @if($session->client->coordinator) class="bg-red-50" @endif>
-                                        
+                                        <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 {{ $session->client->name }}
                                             </td>
@@ -82,7 +79,6 @@
                                                     </div>
                                                 @endif
                                             </td>
-                                            
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {{ \Carbon\Carbon::parse($session->start_time)->translatedFormat('l, d F Y') }}
                                             </td>
@@ -109,8 +105,8 @@
                                                 {{ $session->topic }}
                                             </td>
                                             
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div class="flex items-center justify-end space-x-3 rtl:space-x-reverse">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 rtl:space-x-reverse">
+                                                
                                                 <form method="POST" action="{{ route('admin.sessions.verify', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من اعتماد هذه الحصة؟');">
                                                     @csrf
                                                     @method('PATCH')
@@ -129,17 +125,10 @@
                                                     عرض التقرير
                                                 </x-secondary-button>
                                                 @endif
-                                                
                                                 <form method="POST" action="{{ route('admin.sessions.dispute', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من رفض هذه الحصة وإرسالها للنزاعات؟');">
                                                     @csrf
                                                     <button type="submit" class="text-red-600 hover:text-red-900">رفض (نزاع)</button>
                                                 </form>
-                                                <form method="POST" action="{{ route('admin.sessions.cancel', $session) }}" class="inline-block" onsubmit="return confirm('تحذير! هل أنت متأكد من الإلغاء النهائي لهذه الحصة؟ لا يمكن التراجع عن هذا.');">
-                                                    @csrf
-                                                    <button type="submit" class="font-medium text-red-600 hover:text-red-900">إلغاء نهائي</button>
-                                                </form>
-
-                                            </div>
 
                                             </td>
                                         </tr>

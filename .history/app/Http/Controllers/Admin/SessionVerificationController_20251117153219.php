@@ -93,31 +93,4 @@ class SessionVerificationController extends Controller
         // If successful, send a success message
         return redirect()->route('admin.sessions.verify.index')->with('status', 'تمت مراجعة الحصة بنجاح.');
     }
-    /**
-     * إلغاء الحصة بشكل نهائي
-     * (Hard Reject)
-     */
-    public function cancel(Request $request, Appointment $appointment)
-    {
-        // 1. التأكد أن الحصة بانتظار المراجعة
-        if ($appointment->status !== 'pending_verification') {
-            return redirect()->back()->withErrors(['message' => 'تمت معالجة هذه الحصة مسبقاً.']);
-        }
-
-        try {
-            DB::transaction(function () use ($appointment) {
-                // 2. تغيير الحالة إلى "ملغاة" مباشرة
-                $appointment->status = 'cancelled';
-                $appointment->save();
-                // (لا يتم إنشاء أي نزاع)
-            });
-
-        } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['message' => 'حدث خطأ. ' . $e->getMessage()]);
-        }
-
-        // 3. إرجاع رسالة نجاح
-        return redirect()->route('admin.sessions.verify.index')->with('status', 'تم إلغاء الحصة بنجاح.');
-    }
-    // --- ** انتهت الإضافة ** ---
 }

@@ -66,7 +66,6 @@
                             <x-nav-link :href="route('coordinator.roster.index')" :active="request()->routeIs('coordinator.roster.index')">
                                 إدارة الجدول الأسبوعي
                             </x-nav-link>
-
                             <x-nav-link :href="route('coordinator.sessions.verify.index')" :active="request()->routeIs('coordinator.sessions.verify.index')">
                                 مراجعة الحصص
                             </x-nav-link>
@@ -199,12 +198,6 @@
                 </x-responsive-nav-link>                
                 <x-responsive-nav-link :href="route('coordinator.roster.index')" :active="request()->routeIs('coordinator.roster.index')">
                     إدارة الجدول الأسبوعي
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('coordinator.sessions.verify.index')" :active="request()->routeIs('coordinator.sessions.verify.index')">
-                    مراجعة الحصص
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('coordinator.disputes.index')" :active="request()->routeIs('coordinator.disputes.index')">
-                    إدارة النزاعات
                 </x-responsive-nav-link>
 
             <!-- Teacher Links -->

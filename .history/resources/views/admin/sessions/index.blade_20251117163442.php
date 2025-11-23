@@ -109,7 +109,7 @@
                                                 {{ $session->topic }}
                                             </td>
                                             
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 rtl:space-x-reverse">
                                                 <div class="flex items-center justify-end space-x-3 rtl:space-x-reverse">
                                                 <form method="POST" action="{{ route('admin.sessions.verify', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من اعتماد هذه الحصة؟');">
                                                     @csrf
@@ -134,12 +134,7 @@
                                                     @csrf
                                                     <button type="submit" class="text-red-600 hover:text-red-900">رفض (نزاع)</button>
                                                 </form>
-                                                <form method="POST" action="{{ route('admin.sessions.cancel', $session) }}" class="inline-block" onsubmit="return confirm('تحذير! هل أنت متأكد من الإلغاء النهائي لهذه الحصة؟ لا يمكن التراجع عن هذا.');">
-                                                    @csrf
-                                                    <button type="submit" class="font-medium text-red-600 hover:text-red-900">إلغاء نهائي</button>
-                                                </form>
-
-                                            </div>
+                                                
 
                                             </td>
                                         </tr>

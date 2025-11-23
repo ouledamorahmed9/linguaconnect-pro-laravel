@@ -169,7 +169,6 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::get('/disputes', [CoordinatorDisputeController::class, 'index'])->name('disputes.index');
     Route::patch('/disputes/{dispute}/resolve', [CoordinatorDisputeController::class, 'resolve'])->name('disputes.resolve');
     Route::patch('/disputes/{dispute}/cancel', [CoordinatorDisputeController::class, 'cancel'])->name('disputes.cancel');
-    Route::post('/sessions/{appointment}/cancel', [CoordinatorSessionVerificationController::class, 'cancel'])->name('sessions.cancel');
     // --- ** انتهت الإضافة ** ---
 });
 

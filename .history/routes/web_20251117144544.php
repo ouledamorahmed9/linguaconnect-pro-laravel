@@ -119,7 +119,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');
     Route::patch('/disputes/{dispute}/resolve', [AdminDisputeController::class, 'resolve'])->name('disputes.resolve');
     Route::patch('/disputes/{dispute}/cancel', [AdminDisputeController::class, 'cancel'])->name('disputes.cancel');
-    Route::post('/sessions/{appointment}/cancel', [SessionVerificationController::class, 'cancel'])->name('sessions.cancel');
 // --- ** ابدأ الإضافة من هنا ** ---
     Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
     // --- ** انتهت الإضافة ** ---
@@ -162,15 +161,7 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::get('/roster', [CoordinatorWeeklySlotController::class, 'index'])->name('roster.index');
     Route::post('/roster', [CoordinatorWeeklySlotController::class, 'store'])->name('roster.store');
     Route::delete('/roster/{weeklySlot}', [CoordinatorWeeklySlotController::class, 'destroy'])->name('roster.destroy');
-    // Coordinator Session & Dispute Management
-    Route::get('/sessions/verify', [CoordinatorSessionVerificationController::class, 'index'])->name('sessions.verify.index');
-    Route::patch('/sessions/{appointment}/verify', [CoordinatorSessionVerificationController::class, 'verify'])->name('sessions.verify');
-    Route::post('/sessions/{appointment}/dispute', [CoordinatorDisputeController::class, 'store'])->name('sessions.dispute');
-    Route::get('/disputes', [CoordinatorDisputeController::class, 'index'])->name('disputes.index');
-    Route::patch('/disputes/{dispute}/resolve', [CoordinatorDisputeController::class, 'resolve'])->name('disputes.resolve');
-    Route::patch('/disputes/{dispute}/cancel', [CoordinatorDisputeController::class, 'cancel'])->name('disputes.cancel');
-    Route::post('/sessions/{appointment}/cancel', [CoordinatorSessionVerificationController::class, 'cancel'])->name('sessions.cancel');
-    // --- ** انتهت الإضافة ** ---
+
 });
 
 //======================================================================

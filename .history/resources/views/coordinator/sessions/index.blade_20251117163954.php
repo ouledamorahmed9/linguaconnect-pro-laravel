@@ -38,11 +38,6 @@
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             المعلم
                                         </th>
-                                        
-                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            مدار بواسطة
-                                        </th>
-
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             تاريخ الحصة
                                         </th>
@@ -59,30 +54,13 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($sessions as $session)
-                                    
-                                        <tr @if($session->client->coordinator) class="bg-red-50" @endif>
-                                        
+                                        <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 {{ $session->client->name }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {{ $session->teacher->name }}
                                             </td>
-
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                @if($session->client->coordinator)
-                                                    <div class="font-medium text-gray-900">{{ $session->client->coordinator->name }}</div>
-                                                    <div class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                        منسق
-                                                    </div>
-                                                @else
-                                                    <div class="font-medium text-indigo-600">Admin</div>
-                                                    <div class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
-                                                        المنصة
-                                                    </div>
-                                                @endif
-                                            </td>
-                                            
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {{ \Carbon\Carbon::parse($session->start_time)->translatedFormat('l, d F Y') }}
                                             </td>
@@ -109,38 +87,40 @@
                                                 {{ $session->topic }}
                                             </td>
                                             
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div class="flex items-center justify-end space-x-3 rtl:space-x-reverse">
-                                                <form method="POST" action="{{ route('admin.sessions.verify', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من اعتماد هذه الحصة؟');">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 rtl:space-x-reverse">
+                                                
+                                                <form method="POST" action="{{ route('coordinator.sessions.verify', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من اعتماد هذه الحصة؟');">
                                                     @csrf
                                                     @method('PATCH')
                                                     <button type="submit" class="text-indigo-600 hover:text-indigo-900">اعتماد</button>
                                                 </form>
 
-                                                @if($session->extension_data)
-                                                <x-secondary-button
-                                                    type="button"
-                                                    class="text-xs"
-                                                    x-on:click="
-                                                        sessionData = JSON.parse(atob('{{ base64_encode($session->extension_data) }}'));
-                                                        reportModalOpen = true;
-                                                    "
-                                                >
-                                                    عرض التقرير
-                                                </x-secondary-button>
-                                                @endif
+@if($session->extension_data)
+<x-secondary-button
+    type="button"
+    class="text-xs"
+    x-on:click="
+        sessionData = JSON.parse(atob('{{ base64_encode($session->extension_data) }}'));
+        reportModalOpen = true;
+    "
+>
+    عرض التقرير
+</x-secondary-button>
+@endif
+
+
                                                 
-                                                <form method="POST" action="{{ route('admin.sessions.dispute', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من رفض هذه الحصة وإرسالها للنزاعات؟');">
+
+                                                <form method="POST" action="{{ route('coordinator.sessions.dispute', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من رفض هذه الحصة وإرسالها للنزاعات؟');">
                                                     @csrf
                                                     <button type="submit" class="text-red-600 hover:text-red-900">رفض (نزاع)</button>
                                                 </form>
-                                                <form method="POST" action="{{ route('admin.sessions.cancel', $session) }}" class="inline-block" onsubmit="return confirm('تحذير! هل أنت متأكد من الإلغاء النهائي لهذه الحصة؟ لا يمكن التراجع عن هذا.');">
+                                                    <form method="POST" action="{{ route('coordinator.sessions.dispute', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من إرسال هذه الحصة للنزاعات؟');">
                                                     @csrf
-                                                    <button type="submit" class="font-medium text-red-600 hover:text-red-900">إلغاء نهائي</button>
+                                                    <button type="submit" class="font-medium text-amber-600 hover:text-amber-900">إرسال للنزاع</button>
                                                 </form>
 
                                             </div>
-
                                             </td>
                                         </tr>
                                     @endforeach
@@ -156,6 +136,10 @@
             </div>
         </div>
 
+<div 
+   
+
+    <!-- Modal -->
     <template x-if="reportModalOpen">
         <div 
             class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50"
@@ -165,6 +149,7 @@
                 class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg relative"
                 x-transition.scale
             >
+                <!-- Close button -->
                 <button 
                     @click="reportModalOpen = false" 
                     class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -172,10 +157,12 @@
                     ✕
                 </button>
 
+                <!-- Header -->
                 <h2 class="text-2xl font-bold text-center mb-4 text-blue-700">
                     📄 تقرير الجلسة
                 </h2>
 
+                <!-- Session Info -->
                 <div x-show="sessionData" class="space-y-2 text-sm">
                     <p><strong>📅 التاريخ:</strong> <span x-text="sessionData.date"></span></p>
                     <p><strong>🕒 المدة:</strong> <span x-text="sessionData.duration"></span></p>
@@ -187,6 +174,7 @@
 
                 <hr class="my-4">
 
+                <!-- Participants Table -->
                 <h3 class="text-lg font-semibold mb-2 text-gray-700">المشاركون</h3>
                 <table class="w-full border text-sm">
                     <thead class="bg-blue-100">
@@ -207,6 +195,7 @@
                     </tbody>
                 </table>
 
+                <!-- Footer -->
                 <div class="text-center mt-6">
                     <button 
                         @click="reportModalOpen = false"

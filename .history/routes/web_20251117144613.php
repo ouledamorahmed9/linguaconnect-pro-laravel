@@ -119,7 +119,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');
     Route::patch('/disputes/{dispute}/resolve', [AdminDisputeController::class, 'resolve'])->name('disputes.resolve');
     Route::patch('/disputes/{dispute}/cancel', [AdminDisputeController::class, 'cancel'])->name('disputes.cancel');
-    Route::post('/sessions/{appointment}/cancel', [SessionVerificationController::class, 'cancel'])->name('sessions.cancel');
 // --- ** ابدأ الإضافة من هنا ** ---
     Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
     // --- ** انتهت الإضافة ** ---
@@ -169,7 +168,6 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::get('/disputes', [CoordinatorDisputeController::class, 'index'])->name('disputes.index');
     Route::patch('/disputes/{dispute}/resolve', [CoordinatorDisputeController::class, 'resolve'])->name('disputes.resolve');
     Route::patch('/disputes/{dispute}/cancel', [CoordinatorDisputeController::class, 'cancel'])->name('disputes.cancel');
-    Route::post('/sessions/{appointment}/cancel', [CoordinatorSessionVerificationController::class, 'cancel'])->name('sessions.cancel');
     // --- ** انتهت الإضافة ** ---
 });
 

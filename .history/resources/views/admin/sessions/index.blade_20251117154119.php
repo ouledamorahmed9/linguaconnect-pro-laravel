@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12" x-data="{ reportModalOpen: false, sessionData: null }">
+    <div class="py-12" x-data="{ reportModalOpen: false, sessionData: null, sessionJson: '' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             @if (session('status'))
@@ -42,10 +42,6 @@
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             مدار بواسطة
                                         </th>
-
-                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            تاريخ الحصة
-                                        </th>
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             الحالة (من المعلم)
                                         </th>
@@ -59,9 +55,11 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($sessions as $session)
-                                    
-                                        <tr @if($session->client->coordinator) class="bg-red-50" @endif>
-                                        
+                                        @php
+                                            $cleanJsonString = $session->extension_data ? str_replace("\u{00A0}", " ", $session->extension_data) : null;
+                                            $jsonData = $cleanJsonString ? json_decode($cleanJsonString) : null;
+                                        @endphp
+                                        <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 {{ $session->client->name }}
                                             </td>
@@ -81,10 +79,6 @@
                                                         المنصة
                                                     </div>
                                                 @endif
-                                            </td>
-                                            
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ \Carbon\Carbon::parse($session->start_time)->translatedFormat('l, d F Y') }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 @if($session->completion_status == 'completed')
@@ -110,37 +104,32 @@
                                             </td>
                                             
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div class="flex items-center justify-end space-x-3 rtl:space-x-reverse">
-                                                <form method="POST" action="{{ route('admin.sessions.verify', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من اعتماد هذه الحصة؟');">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" class="text-indigo-600 hover:text-indigo-900">اعتماد</button>
-                                                </form>
+                                                <div class="flex items-center justify-end space-x-2 rtl:space-x-reverse">
+                                                    <form method="POST" action="{{ route('admin.sessions.verify', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من اعتماد هذه الحصة؟');">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit" class="font-medium text-indigo-600 hover:text-indigo-900">اعتماد</button>
+                                                    </form>
 
-                                                @if($session->extension_data)
-                                                <x-secondary-button
-                                                    type="button"
-                                                    class="text-xs"
-                                                    x-on:click="
-                                                        sessionData = JSON.parse(atob('{{ base64_encode($session->extension_data) }}'));
-                                                        reportModalOpen = true;
-                                                    "
-                                                >
-                                                    عرض التقرير
-                                                </x-secondary-button>
-                                                @endif
-                                                
-                                                <form method="POST" action="{{ route('admin.sessions.dispute', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من رفض هذه الحصة وإرسالها للنزاعات؟');">
-                                                    @csrf
-                                                    <button type="submit" class="text-red-600 hover:text-red-900">رفض (نزاع)</button>
-                                                </form>
-                                                <form method="POST" action="{{ route('admin.sessions.cancel', $session) }}" class="inline-block" onsubmit="return confirm('تحذير! هل أنت متأكد من الإلغاء النهائي لهذه الحصة؟ لا يمكن التراجع عن هذا.');">
-                                                    @csrf
-                                                    <button type="submit" class="font-medium text-red-600 hover:text-red-900">إلغاء نهائي</button>
-                                                </form>
+                                                    @if($jsonData)
+                                                        <x-secondary-button
+                                                            type="button"
+                                                            class="text-xs"
+                                                            x-on:click="
+                                                                sessionData = @json($jsonData);
+                                                                sessionJson = JSON.stringify(sessionData, null, 2);
+                                                                reportModalOpen = true;
+                                                            "
+                                                        >
+                                                            عرض التقرير
+                                                        </x-secondary-button>
+                                                    @endif
 
-                                            </div>
-
+                                                    <form method="POST" action="{{ route('admin.sessions.dispute', $session) }}" class="inline-block" onsubmit="return confirm('هل أنت متأكد من رفض هذه الحصة وإرسالها للنزاعات؟');">
+                                                        @csrf
+                                                        <button type="submit" class="font-medium text-red-600 hover:text-red-900">رفض (نزاع)</button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -156,70 +145,75 @@
             </div>
         </div>
 
-    <template x-if="reportModalOpen">
-        <div 
-            class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50"
-            x-transition
-        >
-            <div 
-                class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg relative"
-                x-transition.scale
-            >
-                <button 
-                    @click="reportModalOpen = false" 
-                    class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-                >
-                    ✕
-                </button>
-
-                <h2 class="text-2xl font-bold text-center mb-4 text-blue-700">
-                    📄 تقرير الجلسة
+        <x-modal name="report-modal" x-show="reportModalOpen" @close="reportModalOpen = false" max-width="2xl">
+            <div class="p-6" x-if="sessionData">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    تقرير بيانات الحصة
                 </h2>
 
-                <div x-show="sessionData" class="space-y-2 text-sm">
-                    <p><strong>📅 التاريخ:</strong> <span x-text="sessionData.date"></span></p>
-                    <p><strong>🕒 المدة:</strong> <span x-text="sessionData.duration"></span></p>
-                    <p><strong>👥 عدد المشاركين:</strong> <span x-text="sessionData.participantsCount"></span></p>
-                    <p><strong>⏱ متوسط الوقت في المكالمة:</strong> <span x-text="sessionData.avgTimeInCall"></span></p>
-                    <p><strong>🕰 وقت البدء:</strong> <span x-text="sessionData.startTime"></span></p>
-                    <p><strong>🏁 وقت الانتهاء:</strong> <span x-text="sessionData.endTime"></span></p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">ملخص الجلسة</h3>
+                        <dl class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <dt class="text-sm font-medium text-gray-500">المدة الإجمالية</dt>
+                                <dd class="text-sm font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded" x-text="sessionData.duration || '---'"></dd>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <dt class="text-sm font-medium text-gray-500">وقت البدء</dt>
+                                <dd class="text-sm font-semibold text-gray-900" x-text="sessionData.startTime || '---'"></dd>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <dt class="text-sm font-medium text-gray-500">وقت الانتهاء</dt>
+                                <dd class="text-sm font-semibold text-gray-900" x-text="sessionData.endTime || '---'"></dd>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <dt class="text-sm font-medium text-gray-500">متوسط وقت البقاء</dt>
+                                <dd class="text-sm font-semibold text-gray-900" x-text="sessionData.avgTimeInCall || '---'"></dd>
+                            </div>
+                             <div class="flex justify-between items-center">
+                                <dt class="text-sm font-medium text-gray-500">التاريخ</dt>
+                                <dd class="text-sm font-semibold text-gray-900" x-text="sessionData.date || '---'"></dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">
+                            الحضور
+                            <span class="text-base font-normal text-gray-500" x-text="'(' + (sessionData.participantsCount || 0) + ')'"></span>
+                        </h3>
+                        <div class="max-h-48 overflow-y-auto pr-2 space-y-3">
+                            <template x-if="sessionData.participants && sessionData.participants.length > 0">
+                                <template x-for="participant in sessionData.participants" :key="participant.name">
+                                    <div class="p-3 bg-gray-50 rounded-lg border">
+                                        <div class="font-semibold text-gray-800" x-text="participant.name"></div>
+                                        <div class="text-xs text-gray-600 mt-1 flex justify-between">
+                                            <span>وقت الحضور: <span class="font-medium text-gray-700" x-text="participant.firstSeen"></span></span>
+                                            <span>مدة البقاء: <span class="font-medium text-gray-700" x-text="participant.timeInCall"></span></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </template>
+                            <template x-if="!sessionData.participants || sessionData.participants.length === 0">
+                                <p class="py-2 text-sm text-gray-500">لا توجد بيانات حضور مسجلة.</p>
+                            </template>
+                        </div>
+                    </div>
                 </div>
 
-                <hr class="my-4">
+                <div class="mt-6 pt-4 border-t">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">البيانات المصدرية (JSON)</h3>
+                    <pre class="bg-gray-900 text-white text-xs p-4 rounded-lg overflow-x-auto max-h-60" x-text="sessionJson"></pre>
+                </div>
 
-                <h3 class="text-lg font-semibold mb-2 text-gray-700">المشاركون</h3>
-                <table class="w-full border text-sm">
-                    <thead class="bg-blue-100">
-                        <tr>
-                            <th class="border px-2 py-1">الاسم</th>
-                            <th class="border px-2 py-1">وقت الدخول</th>
-                            <th class="border px-2 py-1">المدة في المكالمة</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template x-for="participant in sessionData.participants" :key="participant.name">
-                            <tr class="hover:bg-gray-50">
-                                <td class="border px-2 py-1" x-text="participant.name"></td>
-                                <td class="border px-2 py-1" x-text="participant.firstSeen"></td>
-                                <td class="border px-2 py-1" x-text="participant.timeInCall"></td>
-                            </tr>
-                        </template>
-                    </tbody>
-                </table>
-
-                <div class="text-center mt-6">
-                    <button 
-                        @click="reportModalOpen = false"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
+                <div class="mt-6 flex justify-end">
+                    <x-secondary-button @click="reportModalOpen = false">
                         إغلاق
-                    </button>
+                    </x-secondary-button>
                 </div>
             </div>
-        </div>
-    </template>
-</div>
- 
-
+        </x-modal>
     </div>
 </x-app-layout>
