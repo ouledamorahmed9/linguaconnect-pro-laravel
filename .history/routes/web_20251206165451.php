@@ -113,9 +113,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('/roster', [WeeklySlotController::class, 'index'])->name('roster.index');
     Route::post('/roster', [WeeklySlotController::class, 'store'])->name('roster.store');
     Route::delete('/roster/{weeklySlot}', [WeeklySlotController::class, 'destroy'])->name('roster.destroy');
-    Route::get('/roster/{weeklySlot}/edit', [WeeklySlotController::class, 'edit'])->name('roster.edit');
-    Route::patch('/roster/{weeklySlot}', [WeeklySlotController::class, 'update'])->name('roster.update');
-
     // --- ** END OF FIX ** ---
 
     // Session & Dispute Management
@@ -126,6 +123,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::patch('/disputes/{dispute}/resolve', [AdminDisputeController::class, 'resolve'])->name('disputes.resolve');
     Route::patch('/disputes/{dispute}/cancel', [AdminDisputeController::class, 'cancel'])->name('disputes.cancel');
     Route::post('/sessions/{appointment}/cancel', [SessionVerificationController::class, 'cancel'])->name('sessions.cancel');
+    Route::get('/roster/{weeklySlot}/edit', [WeeklySlotController::class, 'edit'])->name('roster.edit');
+Route::patch('/roster/{weeklySlot}', [WeeklySlotController::class, 'update'])->name('roster.update');
 
     // --- ** ابدأ الإضافة من هنا ** ---
     Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
@@ -169,11 +168,6 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::get('/roster', [CoordinatorWeeklySlotController::class, 'index'])->name('roster.index');
     Route::post('/roster', [CoordinatorWeeklySlotController::class, 'store'])->name('roster.store');
     Route::delete('/roster/{weeklySlot}', [CoordinatorWeeklySlotController::class, 'destroy'])->name('roster.destroy');
-        Route::get('/roster/{weeklySlot}/edit', [\App\Http\Controllers\Coordinator\WeeklySlotController::class, 'edit'])
-            ->name('roster.edit');
-        Route::patch('/roster/{weeklySlot}', [\App\Http\Controllers\Coordinator\WeeklySlotController::class, 'update'])
-            ->name('roster.update');
-
     // Coordinator Session & Dispute Management
     Route::get('/sessions/verify', [CoordinatorSessionVerificationController::class, 'index'])->name('sessions.verify.index');
     Route::patch('/sessions/{appointment}/verify', [CoordinatorSessionVerificationController::class, 'verify'])->name('sessions.verify');

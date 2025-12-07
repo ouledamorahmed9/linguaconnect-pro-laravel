@@ -19,6 +19,7 @@
                 </div>
             @endif
 
+            <!-- Toggle -->
             <div class="mb-6">
                 <span class="isolate inline-flex rounded-md shadow-sm">
                     <button @click="viewMode = 'list'"
@@ -45,16 +46,19 @@
                 </div>
             @endif
             
+            <!-- List View -->
             <div x-show="viewMode === 'list'">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     
-                    <div class="lg:col-span-1" x-data="{ search: '' }">
+                    <!-- Add Slot Form -->
+                    <div class="lg:col-span-1">
                         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 md:p-8">
                             <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">إضافة حصة أسبوعية</h3>
                             <form method="POST" action="{{ route('teacher.schedule.store') }}" class="space-y-4">
                                 @csrf
 
-                                <div>
+                                <!-- Students Multi-select with search + checkboxes -->
+                                <div x-data="{ search: '' }">
                                     <x-input-label :value="__('الطلاب (يمكن اختيار أكثر من طالب)')" />
                                     <div class="mt-2 mb-2">
                                         <div class="relative">
@@ -73,7 +77,9 @@
                                     </div>
                                     <div class="space-y-2 max-h-56 overflow-auto rounded-md border border-gray-200 p-3 bg-white">
                                         @forelse($clients as $client)
-                                            @php $nameLower = \Illuminate\Support\Str::lower($client->name); @endphp
+                                            @php
+                                                $nameLower = \Illuminate\Support\Str::lower($client->name);
+                                            @endphp
                                             <label
                                                 class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-indigo-50 cursor-pointer"
                                                 x-show="search.trim() === '' || '{{ $nameLower }}'.includes(search.toLowerCase())"
@@ -97,6 +103,7 @@
                                     <x-input-error :messages="$errors->get('students.*')" class="mt-1" />
                                 </div>
                                 
+                                <!-- Day of Week -->
                                 <div>
                                     <x-input-label for="day_of_week" :value="__('يوم الحصة')" />
                                     <select id="day_of_week" name="day_of_week" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" required>
@@ -112,6 +119,7 @@
                                     <x-input-error :messages="$errors->get('day_of_week')" class="mt-2" />
                                 </div>
 
+                                <!-- Start Time -->
                                 <div>
                                     <x-input-label for="start_time" :value="__('وقت البدء (مدة الحصة 1 ساعة)')" />
                                     <select id="start_time" name="start_time" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" required>
@@ -133,6 +141,7 @@
                         </div>
                     </div>
 
+                    <!-- Existing Slots -->
                     <div class="lg:col-span-2">
                         @if(!$weeklySlots->isEmpty())
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -164,24 +173,20 @@
                                                         <p class="text-sm text-gray-600">{{ Auth::user()->subject }}</p>
                                                     </div>
                                                 </div>
-                                                <div class="bg-gray-50 px-5 py-3 border-t flex flex-wrap gap-2">
+                                                <div class="bg-gray-50 px-5 py-3 border-t flex justify-between items-center gap-2">
                                                     @php
                                                         $firstStudentId = $slot->students->first()->id ?? $slot->client_id;
                                                         $lookupKey = "{$firstStudentId}-{$slot->day_of_week}-{$slot->start_time}";
                                                     @endphp
                                                     @if(isset($loggedSlotsLookup[$lookupKey]))
-                                                        <button disabled class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg text-sm cursor-not-allowed">
+                                                        <button disabled class="w-full text-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg text-sm cursor-not-allowed">
                                                             تم التسجيل
                                                         </button>
                                                     @else
-                                                        <a href="{{ route('teacher.sessions.log.create', $slot) }}" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg text-sm hover:bg-indigo-700">
+                                                        <a href="{{ route('teacher.sessions.log.create', $slot) }}" class="block w-full text-center px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg text-sm hover:bg-indigo-700">
                                                             تسجيل الحصة
                                                         </a>
                                                     @endif
-
-                                                    <a href="{{ route('teacher.schedule.edit', $slot) }}" class="px-4 py-2 bg-white text-indigo-700 border border-indigo-300 font-semibold rounded-lg text-sm hover:bg-indigo-50">
-                                                        تعديل الحصة
-                                                    </a>
                                                     
                                                     <form method="POST" action="{{ route('teacher.schedule.destroy', $slot) }}" onsubmit="return confirm('هل أنت متأكد من حذف هذه الحصة؟');">
                                                         @csrf
@@ -201,7 +206,9 @@
                     </div>
                 </div>
             </div>
+            <!-- End List View -->
             
+            <!-- Calendar View -->
             <div 
                 x-show="viewMode === 'calendar'"
                 x-init="
@@ -221,6 +228,7 @@
             >
                 <div id='calendar' class="h-[75vh]"></div>
             </div>
+            <!-- End Calendar View -->
 
         </div>
     </div>

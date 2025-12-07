@@ -35,7 +35,7 @@ class ScheduleController extends Controller
             ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
             ->get();
 
-        // 3. Lookup keyed by first student (or legacy client)
+        // 3. Lookup keyed by first student (or legacy client) to avoid breaking old behavior
         $loggedSlotsLookup = [];
         foreach ($loggedAppointments as $appointment) {
             $dayOfWeek = $appointment->start_time->dayOfWeek;
@@ -46,7 +46,7 @@ class ScheduleController extends Controller
             $loggedSlotsLookup[$key] = true;
         }
 
-        // Calendar events (multi-student sessions tinted yellow)
+        // Calendar events
         $allSlots = $weeklySlots->flatten();
         $calendarEvents = $allSlots->map(function ($slot) {
             $studentNames = $slot->students->pluck('name');
@@ -56,16 +56,13 @@ class ScheduleController extends Controller
 
             $subject = $slot->teacher->subject ?? 'حصة';
 
-            // Color logic: multi-student -> yellow, single -> indigo
-            $color = $slot->students->count() > 1 ? '#f59e0b' : '#4f46e5';
-
             return [
                 'id' => $slot->id,
                 'title' => "{$clientName} ({$subject})",
                 'daysOfWeek' => [$slot->day_of_week],
                 'startTime' => $slot->start_time,
                 'endTime' => $slot->end_time,
-                'color' => $color,
+                'color' => '#4f46e5',
                 'allDay' => false,
                 'clientName' => $clientName,
                 'subject' => $subject,
@@ -149,55 +146,6 @@ class ScheduleController extends Controller
         $weeklySlot->students()->sync($validated['students']);
 
         return redirect()->back()->with('status', 'تمت إضافة الحصة الأسبوعية بنجاح.');
-    }
-
-    /**
-     * Show edit form (students only).
-     */
-    public function edit(WeeklySlot $weeklySlot)
-    {
-        if ($weeklySlot->teacher_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $teacher = Auth::user();
-
-        // Eligible clients
-        $assignedClients = $teacher->clients()->orderBy('name')->get();
-        $clients = $assignedClients->filter(fn($client) => $client->hasActiveSubscription());
-
-        $weeklySlot->load('students', 'client', 'teacher');
-
-        return view('teacher.schedule.edit', [
-            'weeklySlot' => $weeklySlot,
-            'clients' => $clients,
-        ]);
-    }
-
-    /**
-     * Update students for a slot.
-     */
-    public function update(Request $request, WeeklySlot $weeklySlot)
-    {
-        if ($weeklySlot->teacher_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $teacher = Auth::user();
-
-        $validated = $request->validate([
-            'students' => ['required', 'array', 'min:1'],
-            'students.*' => [
-                'integer',
-                Rule::in($teacher->clients()->pluck('users.id')),
-            ],
-        ]);
-
-        $weeklySlot->students()->sync($validated['students']);
-        $weeklySlot->client_id = $validated['students'][0] ?? null; // keep legacy compatibility
-        $weeklySlot->save();
-
-        return redirect()->route('teacher.schedule.index')->with('status', 'تم تحديث الحصة بنجاح.');
     }
 
     /**

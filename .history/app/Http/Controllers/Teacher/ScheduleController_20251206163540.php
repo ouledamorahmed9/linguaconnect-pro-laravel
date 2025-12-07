@@ -19,7 +19,7 @@ class ScheduleController extends Controller
     {
         $teacher = Auth::user();
 
-        // 1. Get all weekly slots for this teacher (with multi-student support)
+        // Weekly slots with multi-student support
         $weeklySlots = WeeklySlot::where('teacher_id', $teacher->id)
             ->with(['client', 'students'])
             ->orderBy('day_of_week', 'asc')
@@ -27,7 +27,7 @@ class ScheduleController extends Controller
             ->get()
             ->groupBy('day_of_week');
 
-        // 2. Get appointments logged THIS WEEK (for the "smart" button lookup)
+        // Logged appointments lookup (this week)
         $startOfWeek = Carbon::now()->startOfWeek(Carbon::MONDAY);
         $endOfWeek = Carbon::now()->endOfWeek(Carbon::SUNDAY);
 
@@ -35,18 +35,16 @@ class ScheduleController extends Controller
             ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
             ->get();
 
-        // 3. Lookup keyed by first student (or legacy client)
         $loggedSlotsLookup = [];
         foreach ($loggedAppointments as $appointment) {
             $dayOfWeek = $appointment->start_time->dayOfWeek;
             $startTime = $appointment->start_time->format('H:i:s');
             $clientId = $appointment->client_id;
-
             $key = "{$clientId}-{$dayOfWeek}-{$startTime}";
             $loggedSlotsLookup[$key] = true;
         }
 
-        // Calendar events (multi-student sessions tinted yellow)
+        // Calendar events
         $allSlots = $weeklySlots->flatten();
         $calendarEvents = $allSlots->map(function ($slot) {
             $studentNames = $slot->students->pluck('name');
@@ -56,23 +54,19 @@ class ScheduleController extends Controller
 
             $subject = $slot->teacher->subject ?? 'حصة';
 
-            // Color logic: multi-student -> yellow, single -> indigo
-            $color = $slot->students->count() > 1 ? '#f59e0b' : '#4f46e5';
-
             return [
                 'id' => $slot->id,
                 'title' => "{$clientName} ({$subject})",
                 'daysOfWeek' => [$slot->day_of_week],
                 'startTime' => $slot->start_time,
                 'endTime' => $slot->end_time,
-                'color' => $color,
+                'color' => '#4f46e5',
                 'allDay' => false,
                 'clientName' => $clientName,
                 'subject' => $subject,
             ];
         });
 
-        // Day names
         $daysOfWeek = [
             1 => 'الاثنين',
             2 => 'الثلاثاء',
@@ -83,7 +77,7 @@ class ScheduleController extends Controller
             0 => 'الأحد',
         ];
 
-        // Assigned clients (filtered to active subscriptions)
+        // Eligible clients (active subscriptions)
         $assignedClients = $teacher->clients()->orderBy('name')->get();
         $clients = $assignedClients->filter(fn($client) => $client->hasActiveSubscription());
 
@@ -97,7 +91,7 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Store a new weekly slot in the database (multi-student).
+     * Store a new weekly slot (multi-student).
      */
     public function store(Request $request)
     {
@@ -107,16 +101,16 @@ class ScheduleController extends Controller
             'students' => ['required', 'array', 'min:1'],
             'students.*' => [
                 'integer',
-                Rule::in($teacher->clients()->pluck('users.id')), // ensure assigned to this teacher
+                Rule::in($teacher->clients()->pluck('users.id')),
             ],
             'day_of_week' => 'required|integer|between:0,6',
-            'start_time' => 'required|date_format:H:i', // HH:MM
+            'start_time' => 'required|date_format:H:i',
         ]);
 
         $startTime = Carbon::parse($validated['start_time']);
-        $endTime = $startTime->copy()->addHour(); // 1 hour duration
+        $endTime = $startTime->copy()->addHour();
 
-        // Overlap check (same teacher, same day, time collision)
+        // Overlap check
         $isOverlap = WeeklySlot::where('teacher_id', $teacher->id)
             ->where('day_of_week', $validated['day_of_week'])
             ->where(function ($query) use ($startTime, $endTime) {
@@ -136,7 +130,6 @@ class ScheduleController extends Controller
             return redirect()->back()->withErrors(['message' => 'هذا التوقيت يتعارض مع حصة أخرى.']);
         }
 
-        // Create the slot (keep client_id for legacy: first selected student)
         $weeklySlot = WeeklySlot::create([
             'teacher_id' => $teacher->id,
             'client_id' => $validated['students'][0] ?? null,
@@ -145,7 +138,6 @@ class ScheduleController extends Controller
             'end_time' => $endTime->format('H:i:s'),
         ]);
 
-        // Attach multiple students
         $weeklySlot->students()->sync($validated['students']);
 
         return redirect()->back()->with('status', 'تمت إضافة الحصة الأسبوعية بنجاح.');

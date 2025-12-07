@@ -1,78 +1,67 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Coordinator;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\WeeklySlot;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 
 class WeeklySlotController extends Controller
 {
     /**
-     * Display the weekly roster management page.
+     * عرض صفحة إدارة الجدول الأسبوعي.
      */
     public function index(Request $request)
     {
+        $coordinator = Auth::user();
         $teachers = User::where('role', 'teacher')->orderBy('name')->get();
         $selectedTeacherId = $request->input('teacher_id');
         $selectedTeacher = null;
-        $clients = collect();
-        $weeklySlots = collect();
-        $teacherStats = null;
+        
+        $myClients = collect(); // عملاء المنسق المتاحين للإضافة
+        $weeklySlots = collect(); // كل الحصص لعرض الجدول
         $calendarEvents = []; 
 
         if ($selectedTeacherId) {
             $selectedTeacher = User::find($selectedTeacherId);
 
             if ($selectedTeacher && $selectedTeacher->hasRole('teacher')) {
-                // Assigned clients (active)
-                $assignedClients = $selectedTeacher->clients()->orderBy('name')->get();
-                $clients = $assignedClients->filter(fn ($client) => $client->hasActiveSubscription());
+                // عملاء المنسق المرتبطون بالمعلم ولديهم اشتراك نشط
+                $myClients = $coordinator->managedClients()
+                    ->whereHas('teachers', function($q) use ($selectedTeacherId) {
+                        $q->where('user_id', $selectedTeacherId);
+                    })
+                    ->get()
+                    ->filter(fn ($client) => $client->hasActiveSubscription());
 
-                // Existing weekly slots
+                // جميع الحصص للعرض (مع الطلاب)
                 $weeklySlots = WeeklySlot::where('teacher_id', $selectedTeacher->id)
-                                ->with(['client', 'students', 'teacher'])
-                                ->get()
-                                ->sortBy([
-                                    ['client.name', 'asc'],
-                                    ['day_of_week', 'asc'],
-                                    ['start_time', 'asc'],
-                                ])
-                                ->groupBy('client.name');
+                    ->with(['students', 'client', 'teacher'])
+                    ->orderBy('day_of_week')
+                    ->orderBy('start_time')
+                    ->get()
+                    ->groupBy('day_of_week');
 
-                // Teacher stats
-                $startOfWeek = Carbon::now()->startOfWeek(Carbon::MONDAY);
-                $endOfWeek = Carbon::now()->endOfWeek(Carbon::SUNDAY);
-                $teacherStats = [
-                    'verified' => Appointment::where('teacher_id', $selectedTeacher->id)
-                                    ->where('status', 'verified')
-                                    ->count(),
-                    'pending' => Appointment::where('teacher_id', $selectedTeacher->id)
-                                    ->where('status', 'pending_verification')
-                                    ->count(),
-                    'this_week' => Appointment::where('teacher_id', $selectedTeacher->id)
-                                    ->whereIn('status', ['verified', 'pending_verification'])
-                                    ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
-                                    ->count(),
-                ];
-
-                // Calendar events (multi-student => yellow)
+                // أحداث التقويم
                 $allSlots = WeeklySlot::where('teacher_id', $selectedTeacher->id)
-                                      ->with(['client', 'teacher', 'students'])
-                                      ->get();
+                    ->with(['students', 'teacher', 'client'])
+                    ->get();
                 
-                $calendarEvents = $allSlots->map(function ($slot) {
+                $calendarEvents = $allSlots->map(function ($slot) use ($coordinator) {
                     $names = $slot->students->pluck('name');
                     $clientName = $names->isNotEmpty()
                         ? $names->implode(', ')
                         : ($slot->client ? $slot->client->name : 'عميل غير محدد');
                     $subject = $slot->teacher->subject ?? 'حصة';
 
-                    $color = $slot->students->count() > 1 ? '#f59e0b' : '#4f46e5';
+                    $isMyClient = $slot->students->contains(fn($s) => $s->created_by_user_id === $coordinator->id)
+                                 || ($slot->client && $slot->client->created_by_user_id === $coordinator->id);
+                    $color = $isMyClient ? '#4f46e5' : '#9ca3af';
 
                     return [
                         'id' => $slot->id,
@@ -86,28 +75,28 @@ class WeeklySlotController extends Controller
                         'subject' => $subject,
                     ];
                 });
-
             } else {
                 $selectedTeacherId = null;
             }
         }
 
-        return view('admin.roster.index', [
+        return view('coordinator.roster.index', [
             'teachers' => $teachers,
             'selectedTeacherId' => $selectedTeacherId,
             'selectedTeacher' => $selectedTeacher,
-            'clients' => $clients,
+            'clients' => $myClients,
             'weeklySlots' => $weeklySlots,
-            'teacherStats' => $teacherStats,
             'calendarEvents' => json_encode($calendarEvents),
         ]);
     }
 
     /**
-     * Store a new weekly slot in the database (multi-student).
+     * حفظ حصة أسبوعية جديدة (متعددة الطلاب).
      */
     public function store(Request $request)
     {
+        $coordinator = Auth::user();
+
         $validated = $request->validate([
             'teacher_id' => 'required|integer|exists:users,id',
             'students' => ['required', 'array', 'min:1'],
@@ -118,10 +107,18 @@ class WeeklySlotController extends Controller
             'day_of_week' => 'required|integer|between:0,6',
             'start_time' => 'required|date_format:H:i',
         ]);
-    
+
+        // تأكد أن كل طالب يتبع لهذا المنسق
+        $studentIds = collect($validated['students']);
+        $owned = $coordinator->managedClients()->whereIn('id', $studentIds)->pluck('id');
+        if ($owned->count() !== $studentIds->count()) {
+            abort(403, 'غير مصرح لك بإضافة حصص لعملاء لا تديرهم.');
+        }
+
         $startTime = Carbon::parse($validated['start_time']);
         $endTime = $startTime->copy()->addHour();
 
+        // تحقق التعارض
         $isOverlap = WeeklySlot::where('teacher_id', $validated['teacher_id'])
             ->where('day_of_week', $validated['day_of_week'])
             ->where(function($query) use ($startTime, $endTime) {
@@ -136,11 +133,12 @@ class WeeklySlotController extends Controller
                       ->where('end_time', '<=', $endTime->format('H:i:s'));
                 });
             })->exists();
-    
+
         if ($isOverlap) {
-            return redirect()->back()->withErrors(['message' => 'هذا التوقيت يتعارض مع حصة أخرى لهذا المعلم.']);
+            return redirect()->back()->withErrors(['message' => 'هذا التوقيت يتعارض مع حصة أخرى موجودة لهذا المعلم.']);
         }
-    
+
+        // إنشاء الحصة (client_id = أول طالب للتوافق السابق)
         $weeklySlot = WeeklySlot::create([
             'teacher_id' => $validated['teacher_id'],
             'client_id' => $validated['students'][0] ?? null,
@@ -148,57 +146,26 @@ class WeeklySlotController extends Controller
             'start_time' => $startTime->format('H:i:s'),
             'end_time' => $endTime->format('H:i:s'),
         ]);
-    
+
         $weeklySlot->students()->sync($validated['students']);
-    
+
         return redirect()->back()->with('status', 'تمت إضافة الحصة الأسبوعية بنجاح.');
     }
 
     /**
-     * Edit students in a weekly slot.
-     */
-    public function edit(WeeklySlot $weeklySlot)
-    {
-        $teacher = $weeklySlot->teacher;
-        $assignedClients = $teacher->clients()->orderBy('name')->get();
-        $clients = $assignedClients->filter(fn ($client) => $client->hasActiveSubscription());
-        $weeklySlot->load('students', 'client', 'teacher');
-
-        return view('admin.roster.edit', [
-            'weeklySlot' => $weeklySlot,
-            'clients' => $clients,
-        ]);
-    }
-
-    /**
-     * Update students in a weekly slot.
-     */
-    public function update(Request $request, WeeklySlot $weeklySlot)
-    {
-        $teacher = $weeklySlot->teacher;
-        $allowed = $teacher->clients()->pluck('users.id');
-
-        $validated = $request->validate([
-            'students' => ['required', 'array', 'min:1'],
-            'students.*' => [
-                'integer',
-                Rule::in($allowed),
-            ],
-        ]);
-
-        $weeklySlot->students()->sync($validated['students']);
-        $weeklySlot->client_id = $validated['students'][0] ?? null; // keep legacy compatibility
-        $weeklySlot->save();
-
-        return redirect()->route('admin.roster.index', ['teacher_id' => $teacher->id])
-                         ->with('status', 'تم تحديث الحصة بنجاح.');
-    }
-
-    /**
-     * Remove the specified weekly slot from storage.
+     * حذف حصة أسبوعية.
      */
     public function destroy(WeeklySlot $weeklySlot)
     {
+        $coordinator = Auth::user();
+
+        // أمان: تحقق أن جميع الطلاب/العميل ضمن إدارة هذا المنسق
+        $ownsAny = $weeklySlot->students->contains(fn($s) => $s->created_by_user_id === $coordinator->id)
+                   || ($weeklySlot->client && $weeklySlot->client->created_by_user_id === $coordinator->id);
+        if (!$ownsAny) {
+            abort(403, 'لا يمكنك حذف حصص لعملاء لا تديرهم.');
+        }
+
         $weeklySlot->delete();
         return redirect()->back()->with('status', 'تم حذف الحصة الأسبوعية.');
     }

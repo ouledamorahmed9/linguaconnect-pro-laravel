@@ -169,10 +169,8 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::get('/roster', [CoordinatorWeeklySlotController::class, 'index'])->name('roster.index');
     Route::post('/roster', [CoordinatorWeeklySlotController::class, 'store'])->name('roster.store');
     Route::delete('/roster/{weeklySlot}', [CoordinatorWeeklySlotController::class, 'destroy'])->name('roster.destroy');
-        Route::get('/roster/{weeklySlot}/edit', [\App\Http\Controllers\Coordinator\WeeklySlotController::class, 'edit'])
-            ->name('roster.edit');
-        Route::patch('/roster/{weeklySlot}', [\App\Http\Controllers\Coordinator\WeeklySlotController::class, 'update'])
-            ->name('roster.update');
+Route::get('/roster/{weeklySlot}/edit', [\App\Http\Controllers\Coordinator\WeeklySlotController::class, 'edit'])->name('coordinator.roster.edit');
+Route::patch('/roster/{weeklySlot}', [\App\Http\Controllers\Coordinator\WeeklySlotController::class, 'update'])->name('coordinator.roster.update');
 
     // Coordinator Session & Dispute Management
     Route::get('/sessions/verify', [CoordinatorSessionVerificationController::class, 'index'])->name('sessions.verify.index');
