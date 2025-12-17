@@ -49,47 +49,6 @@ class SessionLogController extends Controller
      */
     public function store(Request $request, WeeklySlot $weeklySlot)
     {
-        // ---------------------------------------------------------
-        // 1. DECRYPTION LAYER (Added Feature)
-        // ---------------------------------------------------------
-        // This block intercepts the encrypted string from the extension 
-        // and converts it back to JSON before validation/saving.
-        
-        $inputKey = 'extension_data'; 
-        $rawInput = $request->input($inputKey);
-
-        // Check if data exists and does NOT look like normal JSON (normal JSON starts with '{')
-        if ($rawInput && !str_starts_with(trim($rawInput), '{')) {
-            try {
-                // Configuration - MUST MATCH your Extension popup.js exactly
-                // In a production environment, move these to your .env file
-                $secretKey = '1234567890123456'; 
-                $secretIv  = '1234567890123456';
-                
-                // Decrypt using AES-128-CBC
-                $decrypted = openssl_decrypt(
-                    $rawInput, 
-                    'AES-128-CBC', 
-                    $secretKey, 
-                    0, 
-                    $secretIv
-                );
-
-                // If decryption was successful, update the request object
-                // so the rest of your code sees the clean JSON data
-                if ($decrypted !== false) {
-                    $request->merge([$inputKey => $decrypted]);
-                }
-            } catch (\Exception $e) {
-                // If decryption fails (e.g. wrong key or bad data), 
-                // we do nothing and let the original data proceed to validation.
-            }
-        }
-        // ---------------------------------------------------------
-        // END DECRYPTION LAYER
-        // ---------------------------------------------------------
-
-
         // Security: teacher owns slot
         if ($weeklySlot->teacher_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
@@ -106,7 +65,7 @@ class SessionLogController extends Controller
             'topic' => 'required|string|max:255',
             'completion_status' => 'required|in:completed,no_show,technical_issue',
             'google_meet_link' => 'nullable|url',
-            'extension_data' => 'nullable|string', // Contains decrypted JSON now
+            'extension_data' => 'nullable|string',
             'student_notes' => 'required|array',
             'student_notes.*' => 'nullable|string|max:2000',
         ]);

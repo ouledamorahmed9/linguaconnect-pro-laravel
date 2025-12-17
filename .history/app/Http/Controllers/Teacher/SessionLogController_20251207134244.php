@@ -17,25 +17,21 @@ class SessionLogController extends Controller
      */
     public function create(WeeklySlot $weeklySlot)
     {
-        // Security: teacher owns slot
         if ($weeklySlot->teacher_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
         $weeklySlot->load(['students', 'client', 'teacher']);
 
-        // If legacy single-client slots still exist, include that student in the list
         $students = $weeklySlot->students;
         if ($students->isEmpty() && $weeklySlot->client) {
             $students = collect([$weeklySlot->client]);
         }
 
-        // Ensure all have active subscriptions
         $inactive = $students->first(fn($s) => !$s->hasActiveSubscription());
         if ($inactive) {
-            return redirect()
-                ->route('teacher.schedule.index')
-                ->withErrors(['message' => 'لا يمكن تسجيل حصة. أحد الطلاب لا يملك اشتراكاً نشطاً أو رصيداً كافياً.']);
+            return redirect()->route('teacher.schedule.index')
+                             ->withErrors(['message' => 'لا يمكن تسجيل حصة. أحد الطلاب لا يملك اشتراكاً نشطاً أو رصيداً كافياً.']);
         }
 
         return view('teacher.sessions.log', [
@@ -49,48 +45,6 @@ class SessionLogController extends Controller
      */
     public function store(Request $request, WeeklySlot $weeklySlot)
     {
-        // ---------------------------------------------------------
-        // 1. DECRYPTION LAYER (Added Feature)
-        // ---------------------------------------------------------
-        // This block intercepts the encrypted string from the extension 
-        // and converts it back to JSON before validation/saving.
-        
-        $inputKey = 'extension_data'; 
-        $rawInput = $request->input($inputKey);
-
-        // Check if data exists and does NOT look like normal JSON (normal JSON starts with '{')
-        if ($rawInput && !str_starts_with(trim($rawInput), '{')) {
-            try {
-                // Configuration - MUST MATCH your Extension popup.js exactly
-                // In a production environment, move these to your .env file
-                $secretKey = '1234567890123456'; 
-                $secretIv  = '1234567890123456';
-                
-                // Decrypt using AES-128-CBC
-                $decrypted = openssl_decrypt(
-                    $rawInput, 
-                    'AES-128-CBC', 
-                    $secretKey, 
-                    0, 
-                    $secretIv
-                );
-
-                // If decryption was successful, update the request object
-                // so the rest of your code sees the clean JSON data
-                if ($decrypted !== false) {
-                    $request->merge([$inputKey => $decrypted]);
-                }
-            } catch (\Exception $e) {
-                // If decryption fails (e.g. wrong key or bad data), 
-                // we do nothing and let the original data proceed to validation.
-            }
-        }
-        // ---------------------------------------------------------
-        // END DECRYPTION LAYER
-        // ---------------------------------------------------------
-
-
-        // Security: teacher owns slot
         if ($weeklySlot->teacher_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
@@ -101,23 +55,23 @@ class SessionLogController extends Controller
             $students = collect([$weeklySlot->client]);
         }
 
-        // Validate input
         $validated = $request->validate([
             'topic' => 'required|string|max:255',
             'completion_status' => 'required|in:completed,no_show,technical_issue',
             'google_meet_link' => 'nullable|url',
-            'extension_data' => 'nullable|string', // Contains decrypted JSON now
+            'extension_data' => 'nullable|string',
             'student_notes' => 'required|array',
             'student_notes.*' => 'nullable|string|max:2000',
         ]);
 
-        // Active subscription check
         $inactive = $students->first(fn($s) => !$s->hasActiveSubscription());
         if ($inactive) {
-            return redirect()
-                ->route('teacher.schedule.index')
-                ->withErrors(['message' => 'فشل التسجيل. أحد الطلاب لا يملك اشتراكاً نشطاً أو رصيداً كافياً.']);
+            return redirect()->route('teacher.schedule.index')
+                             ->withErrors(['message' => 'فشل التسجيل. أحد الطلاب لا يملك اشتراكاً نشطاً أو رصيداً كافياً.']);
         }
+
+        // Decrypt extension_data if encrypted; otherwise keep as-is
+        $validated['extension_data'] = $this->decryptExtensionData($validated['extension_data'] ?? null) ?? ($validated['extension_data'] ?? null);
 
         // Compute session date/time for this week
         $today = Carbon::now();
@@ -134,7 +88,6 @@ class SessionLogController extends Controller
         try {
             DB::transaction(function () use ($students, $validated, $weeklySlot, $startTime, $endTime) {
                 foreach ($students as $student) {
-                    // Prevent duplicate log for this student in this week/time
                     $startOfWeek = Carbon::now()->startOfWeek(Carbon::MONDAY);
                     $endOfWeek = Carbon::now()->endOfWeek(Carbon::SUNDAY);
 
@@ -146,7 +99,7 @@ class SessionLogController extends Controller
                         ->exists();
 
                     if ($alreadyLogged) {
-                        continue; // skip duplicates
+                        continue;
                     }
 
                     Appointment::create([
@@ -157,7 +110,7 @@ class SessionLogController extends Controller
                         'start_time' => $startTime,
                         'end_time' => $endTime,
                         'status' => 'pending_verification',
-                        'teacher_notes' => $validated['student_notes'][$student->id] ?? null, // per-student note
+                        'teacher_notes' => $validated['student_notes'][$student->id] ?? null,
                         'google_meet_link' => $validated['google_meet_link'] ?? null,
                         'extension_data' => $validated['extension_data'] ?? null,
                         'completion_status' => $validated['completion_status'],
@@ -169,5 +122,55 @@ class SessionLogController extends Controller
         }
 
         return redirect()->route('teacher.schedule.index')->with('status', 'تم تسجيل الحصة بنجاح وفي انتظار مراجعة الإدارة.');
+    }
+
+    /**
+     * Decrypts the encrypted payload from the extension.
+     * Expects JSON with {version, alg, encKey, iv, ciphertext, tag}.
+     */
+    private function decryptExtensionData(?string $payload): ?string
+    {
+        if (empty($payload)) return null;
+
+        $json = json_decode($payload, true);
+        if (
+            !is_array($json) ||
+            !isset($json['encKey'], $json['iv'], $json['ciphertext'], $json['tag'])
+        ) {
+            return $payload; // plaintext or unexpected; return as-is
+        }
+
+        $privKeyPem = env('MEETLIST_PRIV_KEY');
+        if (!$privKeyPem) {
+            return $payload; // no key configured
+        }
+
+        $privKey = openssl_pkey_get_private($privKeyPem);
+        if (!$privKey) {
+            return $payload;
+        }
+
+        $encKey = base64_decode($json['encKey']);
+        $iv = base64_decode($json['iv']);
+        $ciphertext = base64_decode($json['ciphertext']);
+        $tag = base64_decode($json['tag']);
+
+        // RSA-OAEP decrypt AES key
+        $aesKey = null;
+        if (!openssl_private_decrypt($encKey, $aesKey, $privKey, OPENSSL_PKCS1_OAEP_PADDING)) {
+            return $payload;
+        }
+
+        // AES-256-GCM decrypt
+        $plaintext = openssl_decrypt(
+            $ciphertext,
+            'aes-256-gcm',
+            $aesKey,
+            OPENSSL_RAW_DATA,
+            $iv,
+            $tag
+        );
+
+        return $plaintext ?: $payload;
     }
 }

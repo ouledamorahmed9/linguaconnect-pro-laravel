@@ -1,28 +1,16 @@
 <header class="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
     <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-        <a href="/" class="text-2xl font-bold text-indigo-600">أكاديمية كمـــــون</a>
-        
+        <a href="/" class="text-2xl font-bold text-indigo-600">وصلة تعليم</a>
         <div class="hidden md:flex space-x-8 items-center">
             <a href="/" class="ml-8 {{ request()->is('/') ? 'text-indigo-600 font-bold' : 'text-gray-600 hover:text-indigo-600' }} transition-colors">الرئيسية</a>
             <a href="{{ route('teachers.index') }}" class="{{ request()->routeIs('teachers.index') ? 'text-indigo-600 font-bold' : 'text-gray-600 hover:text-indigo-600' }} transition-colors">معلمونا</a>
             <a href="{{ route('pricing.index') }}" class="{{ request()->routeIs('pricing.index') ? 'text-indigo-600 font-bold' : 'text-gray-600 hover:text-indigo-600' }} transition-colors">الأسعار</a>
             <a href="{{ route('contact.index') }}" class="{{ request()->routeIs('contact.index') ? 'text-indigo-600 font-bold' : 'text-gray-600 hover:text-indigo-600' }} transition-colors">اتصل بنا</a>
         </div>
-        
         <div>
         @if (Route::has('login'))
             @auth
-                {{-- Dynamic Dashboard Link based on User Role --}}
-                @php
-                    $dashboardRoute = match(auth()->user()->role) {
-                        'admin' => route('admin.dashboard'),
-                        'coordinator' => route('coordinator.dashboard'),
-                        'teacher' => route('teacher.dashboard'),
-                        default => route('client.dashboard'),
-                    };
-                @endphp
-
-                <a href="{{ $dashboardRoute }}" class="text-gray-600 hover:text-indigo-600 transition-colors">لوحة التحكم</a>
+                <a href="{{ url('/client.dashboard') }}" class="text-gray-600 hover:text-indigo-600 transition-colors">لوحة التحكم</a>
             @else
                 <a href="{{ route('login') }}" class="text-gray-600 hover:text-indigo-600 transition-colors">تسجيل الدخول</a>
 
