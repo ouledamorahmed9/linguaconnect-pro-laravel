@@ -78,12 +78,6 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->name
     Route::get('/schedule/{weeklySlot}/edit', [TeacherScheduleController::class, 'edit'])->name('schedule.edit');
     Route::patch('/schedule/{weeklySlot}', [TeacherScheduleController::class, 'update'])->name('schedule.update');
 
-        // Inbox
-    Route:: get('/inbox', [\App\Http\Controllers\InboxController::class, 'index'])->name('inbox.index');
-    Route::get('/inbox/{message}', [\App\Http\Controllers\InboxController:: class, 'show'])->name('inbox.show');
-    Route::patch('/inbox/{message}/read', [\App\Http\Controllers\InboxController::class, 'markAsRead'])->name('inbox.markAsRead');
-    Route::post('/inbox/mark-all-read', [\App\Http\Controllers\InboxController::class, 'markAllAsRead'])->name('inbox.markAllAsRead');
-
 });
 
 //======================================================================
@@ -203,13 +197,6 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::patch('/disputes/{dispute}/cancel', [CoordinatorDisputeController::class, 'cancel'])->name('disputes.cancel');
     Route::post('/sessions/{appointment}/cancel', [CoordinatorSessionVerificationController::class, 'cancel'])->name('sessions.cancel');
     // --- ** انتهت الإضافة ** ---
-
-        // Inbox
-    Route:: get('/inbox', [\App\Http\Controllers\InboxController::class, 'index'])->name('inbox.index');
-    Route::get('/inbox/{message}', [\App\Http\Controllers\InboxController::class, 'show'])->name('inbox.show');
-    Route::patch('/inbox/{message}/read', [\App\Http\Controllers\InboxController::class, 'markAsRead'])->name('inbox.markAsRead');
-    Route::post('/inbox/mark-all-read', [\App\Http\Controllers\InboxController::class, 'markAllAsRead'])->name('inbox.markAllAsRead');
-
 });
 
 //======================================================================

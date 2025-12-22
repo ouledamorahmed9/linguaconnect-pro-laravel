@@ -194,5 +194,28 @@ class User extends Authenticatable
         return $this->receivedMessages()->unread()->count();
     }
 
-    
+        /**
+     * Get messages sent by this user. 
+     */
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    /**
+     * Get messages received by this user.
+     */
+    public function receivedMessages(): HasMany
+    {
+        return $this->hasMany(Message:: class, 'recipient_id');
+    }
+
+    /**
+     * Get unread messages count for this user.
+     */
+    public function getUnreadMessagesCountAttribute(): int
+    {
+        return $this->receivedMessages()->where('is_read', false)->count();
+    }
+
 }

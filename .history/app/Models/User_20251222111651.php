@@ -16,7 +16,6 @@ use App\Models\StudySubject;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\Message;
 
 
 class User extends Authenticatable
@@ -168,30 +167,6 @@ class User extends Authenticatable
     public function studySubject(): BelongsTo
     {
         return $this->belongsTo(StudySubject::class);
-    }
-
-        /**
-     * Get messages sent by this user.
-     */
-    public function sentMessages(): HasMany
-    {
-        return $this->hasMany(Message::class, 'sender_id');
-    }
-
-    /**
-     * Get messages received by this user.
-     */
-    public function receivedMessages(): HasMany
-    {
-        return $this->hasMany(Message:: class, 'recipient_id');
-    }
-
-    /**
-     * Get unread messages count for this user.
-     */
-    public function getUnreadMessagesCountAttribute(): int
-    {
-        return $this->receivedMessages()->unread()->count();
     }
 
     

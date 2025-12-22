@@ -16,7 +16,6 @@ use App\Models\StudySubject;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\Message;
 
 
 class User extends Authenticatable
@@ -193,6 +192,4 @@ class User extends Authenticatable
     {
         return $this->receivedMessages()->unread()->count();
     }
-
-    
 }

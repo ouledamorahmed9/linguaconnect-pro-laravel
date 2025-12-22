@@ -236,14 +236,6 @@
                 <x-responsive-nav-link :href="route('coordinator.disputes.index')" :active="request()->routeIs('coordinator.disputes.index')">
                     إدارة النزاعات
                 </x-responsive-nav-link>
-<x-responsive-nav-link : href="route('coordinator.inbox.index')" :active="request()->routeIs('coordinator.inbox.*')">
-    صندوق الوارد
-    @if(auth()->user()->unread_messages_count > 0)
-        <span class="mr-1 px-1.5 py-0.5 text-xs font-semibold rounded-full bg-red-500 text-white">
-            {{ auth()->user()->unread_messages_count }}
-        </span>
-    @endif
-</x-responsive-nav-link>
 
             <!-- Teacher Links -->
             @elseif(Auth::user()->hasRole('teacher'))

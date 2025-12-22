@@ -193,6 +193,4 @@ class User extends Authenticatable
     {
         return $this->receivedMessages()->unread()->count();
     }
-
-    
 }
