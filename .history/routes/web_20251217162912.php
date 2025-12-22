@@ -83,7 +83,7 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->name
 //======================================================================
 // Authenticated Admin Routes
 //======================================================================
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth',  'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     
     // Client Management

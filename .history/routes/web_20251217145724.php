@@ -83,7 +83,7 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->name
 //======================================================================
 // Authenticated Admin Routes
 //======================================================================
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     
     // Client Management
@@ -139,13 +139,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Session & Dispute Management
     Route::get('/sessions/verify', [SessionVerificationController::class, 'index'])->name('sessions.verify.index');
-        // Study Subjects Management
-    Route::get('/study-subjects', [\App\Http\Controllers\Admin\StudySubjectController::class, 'index'])->name('study-subjects.index');
-    Route::get('/study-subjects/create', [\App\Http\Controllers\Admin\StudySubjectController::class, 'create'])->name('study-subjects.create');
-    Route::post('/study-subjects', [\App\Http\Controllers\Admin\StudySubjectController::class, 'store'])->name('study-subjects.store');
-    Route::get('/study-subjects/{studySubject}/edit', [\App\Http\Controllers\Admin\StudySubjectController::class, 'edit'])->name('study-subjects.edit');
-    Route::patch('/study-subjects/{studySubject}', [\App\Http\Controllers\Admin\StudySubjectController::class, 'update'])->name('study-subjects.update');
-    Route::delete('/study-subjects/{studySubject}', [\App\Http\Controllers\Admin\StudySubjectController:: class, 'destroy'])->name('study-subjects.destroy');
+
 
 });
 

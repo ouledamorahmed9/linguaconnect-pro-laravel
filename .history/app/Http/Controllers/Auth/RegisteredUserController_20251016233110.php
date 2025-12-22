@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\StudySubject;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,9 +20,7 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        $studySubjects = StudySubject::active()->ordered()->get();
-        
-        return view('auth.register', compact('studySubjects'));
+        return view('auth.register');
     }
 
     /**
@@ -34,25 +32,20 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:'. User::class],
-            'phone' => ['required', 'string', 'max:20', 'regex:/^[\+]?[0-9\s\-\(\)]+$/'],
-            'study_subject_id' => ['required', 'exists:study_subjects,id'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'phone' => $request->phone,
-            'study_subject_id' => $request->study_subject_id,
             'password' => Hash::make($request->password),
-            'role' => 'client',
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect()->route('client.dashboard');
+        return redirect(RouteServiceProvider::HOME);
     }
 }

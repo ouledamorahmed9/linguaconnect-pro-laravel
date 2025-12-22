@@ -50,8 +50,8 @@
                             سجل الأنشطة
                         </x-nav-link>
                         <x-nav-link :href="route('admin.study-subjects.index')" :active="request()->routeIs('admin.study-subjects.*')">
-                         إدارة المواد الدراسية
-                        </x-nav-link>
+ إدارة المواد الدراسية
+</x-nav-link>
 
                     <!-- coordinator Links -->
                     @elseif(Auth::user()->hasRole('coordinator'))
@@ -186,10 +186,7 @@
                 <x-responsive-nav-link :href="route('admin.activity-log.index')" :active="request()->routeIs('admin.activity-log.index')">
                     سجل الأنشطة
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.study-subjects.index')" :active="request()->routeIs('admin.study-subjects.*')">
-                 إدارة المواد الدراسية
-                </x-responsive-nav-link>
-
+            
             <!-- coordinator Links -->
             @elseif(Auth::user()->hasRole('coordinator'))
                 <x-responsive-nav-link :href="route('coordinator.dashboard')" :active="request()->routeIs('coordinator.dashboard')">

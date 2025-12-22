@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\StudySubject;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,13 +47,12 @@ class RegisteredUserController extends Controller
             'phone' => $request->phone,
             'study_subject_id' => $request->study_subject_id,
             'password' => Hash::make($request->password),
-            'role' => 'client',
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect()->route('client.dashboard');
+        return redirect(RouteServiceProvider:: HOME);
     }
 }

@@ -188,7 +188,7 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.study-subjects.index')" :active="request()->routeIs('admin.study-subjects.*')">
                  إدارة المواد الدراسية
-                </x-responsive-nav-link>
+</x-responsive-nav-link>
 
             <!-- coordinator Links -->
             @elseif(Auth::user()->hasRole('coordinator'))
