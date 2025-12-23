@@ -7,15 +7,15 @@
                 <div class="shrink-0 flex items-center">
                     @if(Auth::user()->hasRole('teacher'))
                         <a href="{{ route('teacher.dashboard') }}" class="text-2xl font-bold text-indigo-600">
-                            وصلة تعليم
+                            أكاديمية كمـــــون
                         </a>
                     @elseif(Auth::user()->hasRole('admin'))
                          <a href="{{ route('admin.dashboard') }}" class="text-2xl font-bold text-indigo-600">
-                            وصلة تعليم
+                            أكاديمية كمـــــون
                         </a>
                     @else
                          <a href="{{ route('client.dashboard') }}" class="text-2xl font-bold text-indigo-600">
-                            وصلة تعليم
+                            أكاديمية كمـــــون
                         </a>
                     @endif
                 </div>

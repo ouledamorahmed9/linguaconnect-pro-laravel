@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'اتصل بنا - أكاديمية كمـــــون')
+@section('title', 'اتصل بنا - وصلة تعليم')
 
 @section('content')
     <!-- Page Header Section -->

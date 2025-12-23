@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {{-- The @yield directive allows each page to set its own title --}}
-    <title>@yield('title', 'أكاديمية كمـــــون')</title>
+    <title>@yield('title', 'وصلة تعليم')</title>
 
     <!-- Fonts & Styles -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

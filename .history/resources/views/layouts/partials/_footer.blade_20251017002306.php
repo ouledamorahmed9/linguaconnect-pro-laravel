@@ -3,7 +3,7 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
       <!-- About Section -->
       <div>
-        <h3 class="text-xl font-bold mb-4">أكاديمية كمـــــون</h3>
+        <h3 class="text-xl font-bold mb-4">وصلة تعليم</h3>
         <p class="text-gray-400 text-sm">
           نحن نربط الطلاب بأفضل معلمي اللغات من خلال منصة سهلة ومتابعة شخصية لضمان تحقيق أفضل النتائج.
         </p>
@@ -39,7 +39,7 @@
       </div>
     </div>
     <div class="mt-8 border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
-      <p>&copy; {{ date('Y') }} أكاديمية كمـــــون (LinguaConnect). جميع الحقوق محفوظة.</p>
+      <p>&copy; {{ date('Y') }} وصلة تعليم (LinguaConnect). جميع الحقوق محفوظة.</p>
     </div>
   </div>
 </footer>

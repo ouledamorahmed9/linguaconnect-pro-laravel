@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'أكاديمية كمـــــون (LinguaConnect) - تعليم لغات يمنحك راحة البال')
+@section('title', 'وصلة تعليم (LinguaConnect) - تعليم لغات يمنحك راحة البال')
 
 {{-- This section is for custom styles specific to this page --}}
 @push('styles')
@@ -155,7 +155,7 @@
           </div>
           <!-- Testimonial 3 -->
           <div class="bg-gray-50 p-8 rounded-lg shadow-lg">
-            <p class="text-gray-600 mb-6 italic">"كنت مترددة من التعلم عن بعد، لكن تجربة (أكاديمية كمـــــون) غيرت رأيي تماماً. النظام منظم، والمعلم صبور ومتمكن. أوصي بهم بشدة."</p>
+            <p class="text-gray-600 mb-6 italic">"كنت مترددة من التعلم عن بعد، لكن تجربة (وصلة تعليم) غيرت رأيي تماماً. النظام منظم، والمعلم صبور ومتمكن. أوصي بهم بشدة."</p>
             <div class="flex items-center">
               <img class="w-12 h-12 rounded-full mr-4 object-cover" src="https://images.pexels.com/photos/762020/pexels-photo-762020.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="Avatar of Parent">
               <div>

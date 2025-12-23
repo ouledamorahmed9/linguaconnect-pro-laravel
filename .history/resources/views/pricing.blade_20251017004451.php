@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'الأسعار - أكاديمية كمـــــون')
+@section('title', 'الأسعار - وصلة تعليم')
 
 @section('content')
     <!-- Page Header Section -->
