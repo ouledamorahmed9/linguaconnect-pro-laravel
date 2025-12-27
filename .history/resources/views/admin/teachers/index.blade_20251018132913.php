@@ -28,34 +28,12 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    
-                    <form method="GET" action="{{ route('admin.teachers.index') }}" class="mb-4">
-                        <div class="flex gap-2">
-                            <input type="text" 
-                                   name="search" 
-                                   value="{{ request('search') }}"
-                                   placeholder="ابحث عن معلم بالاسم، البريد الإلكتروني أو المادة..." 
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-                            
-                            <button type="submit" class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition">
-                                بحث
-                            </button>
-                            
-                            @if(request('search'))
-                                <a href="{{ route('admin.teachers.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition flex items-center">
-                                    مسح
-                                </a>
-                            @endif
-                        </div>
-                    </form>
-
                     <div class="overflow-x-auto">
                         <table class="min-w-full bg-white">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الاسم</th>
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">البريد الإلكتروني</th>
-                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الطلاب</th>
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
                                     <th scope="col" class="relative px-6 py-3">
                                         <span class="sr-only">Actions</span>
@@ -67,15 +45,9 @@
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm font-medium text-gray-900">{{ $teacher->name }}</div>
-                                            @if($teacher->subject)
-                                                <div class="text-xs text-gray-500">{{ $teacher->subject }}</div>
-                                            @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-500">{{ $teacher->email }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900 font-bold">{{ $teacher->clients_count ?? 0 }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">نشط</span>
@@ -87,7 +59,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                                        <td colspan="4" class="px-6 py-12 text-center text-gray-500">
                                             لا يوجد معلمون مسجلون حالياً.
                                         </td>
                                     </tr>
@@ -95,15 +67,11 @@
                             </tbody>
                         </table>
                     </div>
-
-                    <div class="mt-4">
-                        {{ $teachers->links() }}
-                    </div>
-
                 </div>
             </div>
         </div>
 
+        <!-- Delete Confirmation Modal -->
         <div x-show="openModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50" style="display: none;">
             <div @click.away="openModal = false" class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
                 <div class="text-center">
@@ -133,3 +101,4 @@
         </div>
     </div>
 </x-app-layout>
+

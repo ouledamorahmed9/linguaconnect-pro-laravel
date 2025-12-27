@@ -8,6 +8,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
             
+            <!-- Main Profile Form -->
             <div class="lg:col-span-2">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 md:p-8 text-gray-900">
@@ -16,42 +17,39 @@
                             @csrf
                             @method('PATCH')
 
+                            <!-- Name -->
                             <div>
                                 <x-input-label for="name" :value="__('الاسم الكامل للمعلم')" />
                                 <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name', $teacher->name)" required autofocus autocomplete="name" />
                                 <x-input-error :messages="$errors->get('name')" class="mt-2" />
                             </div>
 
+                            <!-- Email Address -->
                             <div>
                                 <x-input-label for="email" :value="__('البريد الإلكتروني')" />
                                 <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $teacher->email)" required autocomplete="username" />
                                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
                             </div>
-
+                        <!-- ** ADD THIS subject of teacher ** -->
                             <div>
-                                <x-input-label for="subject" :value="__('المادة التي يدرسها')" />
-                                <select id="subject" name="subject" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                    <option value="" disabled>-- اختر المادة --</option>
-                                    @foreach($studySubjects as $s)
-                                        <option value="{{ $s->name }}" {{ old('subject', $teacher->subject) == $s->name ? 'selected' : '' }}>
-                                            {{ $s->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <x-input-label for="subject" :value="__('المادة التي يدرسها (مثل: لغة فرنسية, رياضيات)')" />
+                                <x-text-input id="subject" class="block mt-1 w-full" type="text" name="subject" :value="old('subject', $teacher->subject)" />
                                 <x-input-error :messages="$errors->get('subject')" class="mt-2" />
                             </div>
 
                             <hr class="my-6">
                             <p class="text-sm text-gray-600">اترك حقول كلمة المرور فارغة إذا كنت لا ترغب في تغييرها.</p>
 
+                            <!-- Password -->
                             <div>
                                 <x-input-label for="password" :value="__('كلمة المرور الجديدة')" />
                                 <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" autocomplete="new-password" />
                                 <x-input-error :messages="$errors->get('password')" class="mt-2" />
                             </div>
 
+                            <!-- Confirm Password -->
                             <div>
-                                <x-input-label for="password_confirmation" :value="__('تأكيد كلمة المرور الجديدة')" />
+                                <x-input-label for="password_confirmation" :value="__('تâ"id كلمة المرور الجديدة')" />
                                 <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" autocomplete="new-password" />
                                 <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                             </div>
@@ -70,21 +68,27 @@
                 </div>
             </div>
 
+            <!-- Client Management Panel -->
             <div class="lg:col-span-1">
                  <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     
+                    <!-- Search Box -->
                     <div class="p-6 md:p-8 text-gray-900 border-b border-gray-200">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold">تعيين العملاء</h3>
+                            <!-- Professional Status Indicator -->
                             <div id="assignment-status" class="flex items-center text-sm text-gray-500" style="display: none;">
+                                <!-- Spinner (hidden by default) -->
                                 <svg id="status-spinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="display: none;">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
+                                <!-- Text -->
                                 <span id="status-text">جاري الحفظ...</span>
                             </div>
                         </div>
                         
+                        <!-- Live Search Form -->
                         <form method="GET" action="{{ route('admin.teachers.edit', $teacher) }}" id="client-search-form" class="mb-0">
                             <label for="search" class="sr-only">البحث عن عميل</label>
                             <div class="relative">
@@ -98,6 +102,7 @@
                         </form>
                     </div>
 
+                    <!-- Client List (No Form Tag) -->
                     <div class="p-6 md:p-8 text-gray-900">
                         <h4 class="text-md font-semibold text-gray-800 mb-3">قائمة العملاء (ذوي الاشتراك النشط)</h4>
                         
@@ -105,6 +110,7 @@
                             @forelse($eligibleClients as $client)
                                 <label for="client_{{ $client->id }}" class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">
                                     <div class="flex items-center">
+                                        <!-- The dynamically controlled checkbox -->
                                         <input type="checkbox" 
                                                id="client_{{ $client->id }}" 
                                                name="clients[]" 
@@ -112,12 +118,13 @@
                                                class="client-toggle-checkbox rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
                                                data-client-id="{{ $client->id }}"
                                                @if(in_array($client->id, $assignedClientIds)) checked @endif>
-                                    
+                                        
                                         <div class="mr-3 text-right">
                                             <span class="font-semibold text-gray-900">{{ $client->name }}</span>
                                             <span class="block text-xs text-gray-500">{{ $client->email }}</span>
                                         </div>
                                     </div>
+                                    <!-- Status Badge -->
                                     <span class="client-badge-{{ $client->id }} text-xs font-medium px-2 py-0.5 rounded-full {{ in_array($client->id, $assignedClientIds) ? 'text-indigo-800 bg-indigo-100' : 'text-gray-800 bg-gray-100' }}">
                                         {{ in_array($client->id, $assignedClientIds) ? 'معين' : 'متاح' }}
                                     </span>
@@ -133,6 +140,7 @@
                             @endforelse
                         </div>
                         
+                        <!-- Pagination Links -->
                         <div class="mt-4">
                             {{ $eligibleClients->links() }}
                         </div>
@@ -143,6 +151,9 @@
         </div>
     </div>
 
+    <!-- 
+        SECTION 3: DYNAMIC SCRIPTS
+    -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             
@@ -256,3 +267,4 @@
         });
     </script>
 </x-app-layout>
+

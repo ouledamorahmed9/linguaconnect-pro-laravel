@@ -85,16 +85,12 @@ class TeacherController extends Controller
     /**
      * Show the form for editing the specified teacher.
      */
-public function edit(Request $request, User $teacher)
+    public function edit(Request $request, User $teacher)
     {
         if (!$teacher->hasRole('teacher')) {
             abort(404, 'User is not a teacher.');
         }
 
-        // 1. Fetch Subjects for the Dropdown (NEW ADDITION)
-        $studySubjects = StudySubject::active()->ordered()->get();
-
-        // 2. Existing Logic
         $search = $request->input('search');
         $assignedClientIds = $teacher->clients()->pluck('users.id')->toArray();
 
@@ -119,10 +115,9 @@ public function edit(Request $request, User $teacher)
             'eligibleClients' => $eligibleClients,
             'assignedClientIds' => $assignedClientIds,
             'search' => $search,
-            'studySubjects' => $studySubjects, // <--- Pass this to view
         ]);
     }
-    
+
     /**
      * Update the specified teacher in the database.
      */

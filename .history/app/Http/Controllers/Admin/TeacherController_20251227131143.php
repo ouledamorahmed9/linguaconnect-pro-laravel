@@ -122,7 +122,6 @@ public function edit(Request $request, User $teacher)
             'studySubjects' => $studySubjects, // <--- Pass this to view
         ]);
     }
-    
     /**
      * Update the specified teacher in the database.
      */

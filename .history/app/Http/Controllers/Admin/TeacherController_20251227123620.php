@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\StudySubject; // <--- Import this
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -18,7 +17,7 @@ class TeacherController extends Controller
     /**
      * Display a listing of all teachers.
      */
-    public function index(Request $request)
+    public function index(Request $request) // <--- Added Request dependency
     {
         $query = User::where('role', 'teacher');
 
@@ -28,7 +27,7 @@ class TeacherController extends Controller
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('subject', 'like', "%{$search}%");
+                  ->orWhere('subject', 'like', "%{$search}%"); // Added subject search
             });
         }
         // --- SEARCH LOGIC END ---
@@ -47,10 +46,7 @@ class TeacherController extends Controller
      */
     public function create(): View
     {
-        // Fetch active subjects for the dropdown
-        $studySubjects = StudySubject::active()->ordered()->get();
-
-        return view('admin.teachers.create', compact('studySubjects'));
+        return view('admin.teachers.create');
     }
 
     /**
@@ -69,13 +65,7 @@ class TeacherController extends Controller
         $teacher->name = $request->name;
         $teacher->email = $request->email;
         $teacher->password = Hash::make($request->password);
-        
-        // Force Role
         $teacher->role = 'teacher';
-        
-        // Save the Subject Name selected from the dropdown
-        $teacher->subject = $request->subject;
-        
         $teacher->save();
 
         return redirect()->route('admin.teachers.index')
@@ -85,16 +75,12 @@ class TeacherController extends Controller
     /**
      * Show the form for editing the specified teacher.
      */
-public function edit(Request $request, User $teacher)
+    public function edit(Request $request, User $teacher)
     {
         if (!$teacher->hasRole('teacher')) {
             abort(404, 'User is not a teacher.');
         }
 
-        // 1. Fetch Subjects for the Dropdown (NEW ADDITION)
-        $studySubjects = StudySubject::active()->ordered()->get();
-
-        // 2. Existing Logic
         $search = $request->input('search');
         $assignedClientIds = $teacher->clients()->pluck('users.id')->toArray();
 
@@ -119,10 +105,9 @@ public function edit(Request $request, User $teacher)
             'eligibleClients' => $eligibleClients,
             'assignedClientIds' => $assignedClientIds,
             'search' => $search,
-            'studySubjects' => $studySubjects, // <--- Pass this to view
         ]);
     }
-    
+
     /**
      * Update the specified teacher in the database.
      */
