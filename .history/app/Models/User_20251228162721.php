@@ -39,7 +39,6 @@ class User extends Authenticatable
         'study_subject_id',
         'referral_code', // <--- Add this
         'referrer_id',   // <--- Add this
-        'bio', 'banner_photo_path'// <--- ADD THESE TWO
     ];
 
     /**
@@ -246,6 +245,14 @@ class User extends Authenticatable
         return $code;
     }
 
+    
+}
+protected $fillable = [
+        'name', 'email', 'password', 'subject', 'profile_photo_path',
+        'created_by_user_id', 'phone', 'study_subject_id', 'referral_code', 'referrer_id',
+        'bio', 'banner_photo_path' // <--- ADD THESE TWO
+    ];
+
     /**
      * Get the reviews this user (teacher) has received.
      */
@@ -279,4 +286,3 @@ class User extends Authenticatable
             ? Storage::url($this->banner_photo_path) 
             : 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop'; // Default Banner
     }
-}

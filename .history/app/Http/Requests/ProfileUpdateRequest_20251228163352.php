@@ -25,7 +25,7 @@ class ProfileUpdateRequest extends FormRequest
             // 2. Max size 2MB (2048 KB) to prevent server overload
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'], 
             'bio' => ['nullable', 'string', 'max:1000'], // New
-            'banner_photo' => ['nullable', 'image', 'max:2048'], // New (Validation only)
+        'banner_photo' => ['nullable', 'image', 'max:2048'], // New (Validation only)
         ];
     }
 }

@@ -39,7 +39,7 @@ class User extends Authenticatable
         'study_subject_id',
         'referral_code', // <--- Add this
         'referrer_id',   // <--- Add this
-        'bio', 'banner_photo_path'// <--- ADD THESE TWO
+        'bio', 'banner_photo_path'
     ];
 
     /**
@@ -246,37 +246,5 @@ class User extends Authenticatable
         return $code;
     }
 
-    /**
-     * Get the reviews this user (teacher) has received.
-     */
-    public function receivedReviews()
-    {
-        return $this->hasMany(Review::class, 'teacher_id');
-    }
-
-    /**
-     * Get the average rating.
-     */
-    public function getAverageRatingAttribute()
-    {
-        return round($this->receivedReviews()->avg('rating') ?? 5, 1);
-    }
-
-    /**
-     * Get Reviews Count
-     */
-    public function getReviewsCountAttribute()
-    {
-        return $this->receivedReviews()->count();
-    }
-
-    /**
-     * Get Banner URL
-     */
-    public function getBannerUrlAttribute()
-    {
-        return $this->banner_photo_path 
-            ? Storage::url($this->banner_photo_path) 
-            : 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop'; // Default Banner
-    }
+    
 }

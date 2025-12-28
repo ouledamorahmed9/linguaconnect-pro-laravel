@@ -69,11 +69,6 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
 })->name('dashboard');
 
 
-Route::get('/teachers/{teacher}', [PublicTeacherController::class, 'show'])->name('teachers.show');
-Route::post('/teachers/{teacher}/reviews', [PublicTeacherController::class, 'storeReview'])
-    ->middleware(['auth', 'verified'])
-    ->name('teachers.reviews.store');
-
 
 
 // LEGAL PAGES (Required for Stripe/Bank)
@@ -127,13 +122,6 @@ Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->name('
     Route::get('/my-schedule', [ScheduleController::class, 'index'])->name('schedule.index');
     Route::get('/progress-reports', [ProgressReportController::class, 'index'])->name('progress-reports.index');
     Route::get('/my-subscription', [ClientSubscriptionController::class, 'index'])->name('subscription.index');
-    
-    // --- ADD THESE NEW ROUTES ---
-    Route::get('/subscription/create/{plan}', [App\Http\Controllers\Client\SubscriptionController::class, 'create'])
-        ->name('subscription.create');
-
-    Route::post('/subscription', [App\Http\Controllers\Client\SubscriptionController::class, 'store'])
-        ->name('subscription.store');
 });
 
 //======================================================================

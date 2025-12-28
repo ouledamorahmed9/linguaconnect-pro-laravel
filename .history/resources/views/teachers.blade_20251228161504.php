@@ -74,9 +74,9 @@
                                 </p>
                                 
                                 <div class="mt-auto w-full">
-<a href="{{ route('teachers.show', $teacher->id) }}" class="block w-full py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-indigo-600 transition-colors shadow-lg hover:shadow-indigo-500/30">
-    عرض الملف الشخصي & التقييمات
-</a>
+                                    <a href="{{ route('register') }}" class="block w-full py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-indigo-600 transition-colors shadow-lg hover:shadow-indigo-500/30">
+                                        احجز حصة تجريبية
+                                    </a>
                                 </div>
                             </div>
                         </div>

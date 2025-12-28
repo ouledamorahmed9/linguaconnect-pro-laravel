@@ -37,7 +37,7 @@ use App\Http\Controllers\Api\MeetReportController;
 use App\Http\Controllers\Coordinator\SessionVerificationController as CoordinatorSessionVerificationController;
 use App\Http\Controllers\Coordinator\DisputeController as CoordinatorDisputeController;
 use App\Http\Controllers\LegalController;
-use App\Http\Controllers\PublicTeacherController;
+
 use Illuminate\Support\Facades\Cookie;
 use App\Models\User;
 
@@ -69,15 +69,10 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
 })->name('dashboard');
 
 
-Route::get('/teachers/{teacher}', [PublicTeacherController::class, 'show'])->name('teachers.show');
-Route::post('/teachers/{teacher}/reviews', [PublicTeacherController::class, 'storeReview'])
-    ->middleware(['auth', 'verified'])
-    ->name('teachers.reviews.store');
-
 
 
 // LEGAL PAGES (Required for Stripe/Bank)
-Route::get('/contact-us', [LegalController::class, 'contact'])->name('legal.contact');
+Route::get('/contact-us', [App\Http\Controllers\LegalController::class, 'contact'])->name('legal.contact');
 Route::get('/privacy-policy', [LegalController::class, 'privacy'])->name('legal.privacy');
 Route::get('/terms-of-service', [LegalController::class, 'terms'])->name('legal.terms');
 Route::get('/refund-policy', [LegalController::class, 'refund'])->name('legal.refund');
@@ -106,16 +101,7 @@ Route::get('/ref/{code}', function ($code) {
 // Public Guest Routes
 //======================================================================
 Route::get('/', function () { return view('welcome'); })->name('welcome');
-// OUR TEACHERS PAGE
-Route::get('/teachers', function () {
-    // Fetch real teachers from DB
-    $teachers = App\Models\User::where('role', 'teacher')
-                ->with('studySubject') // Eager load the subject they teach
-                ->latest()
-                ->get();
-
-    return view('teachers', compact('teachers'));
-})->name('teachers.index');
+Route::get('/teachers', function () { return view('teachers'); })->name('teachers.index');
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing.index');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 
@@ -127,13 +113,6 @@ Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->name('
     Route::get('/my-schedule', [ScheduleController::class, 'index'])->name('schedule.index');
     Route::get('/progress-reports', [ProgressReportController::class, 'index'])->name('progress-reports.index');
     Route::get('/my-subscription', [ClientSubscriptionController::class, 'index'])->name('subscription.index');
-    
-    // --- ADD THESE NEW ROUTES ---
-    Route::get('/subscription/create/{plan}', [App\Http\Controllers\Client\SubscriptionController::class, 'create'])
-        ->name('subscription.create');
-
-    Route::post('/subscription', [App\Http\Controllers\Client\SubscriptionController::class, 'store'])
-        ->name('subscription.store');
 });
 
 //======================================================================

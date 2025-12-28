@@ -34,45 +34,49 @@ class ProfileController extends Controller
         // --- ** نهاية الإصلاح ** ---
 
         // 2. الآن نستخدم المتغير $user في كل مكان
-        // This handles Name, Email, and BIO automatically (if added to Request rules)
         $user->fill($request->validated());
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
         
-        // --- 3. إضافة منطق الصورة (Profile Photo) القديم (سيعمل الآن) ---
+        // --- 3. إضافة منطق الصورة الجديد (سيعمل الآن) ---
 
-        // Handle profile photo upload
-        if ($request->hasFile('photo')) {
-            if ($user->profile_photo_path) {
-                Storage::disk('public')->delete($user->profile_photo_path);
-            }
-            $user->profile_photo_path = $request->file('photo')->store('profile-photos', 'public');
-        }
+// Handle profile photo upload
+if ($request->hasFile('photo')) {
+    if ($user->profile_photo_path) {
+        Storage::disk('public')->delete($user->profile_photo_path);
+    }
+    $user->profile_photo_path = $request->file('photo')->store('profile-photos', 'public');
+}
 
-        // Handle profile photo deletion
-        if ($request->boolean('delete_photo')) {
-            if ($user->profile_photo_path) {
-                Storage::disk('public')->delete($user->profile_photo_path);
-            }
-            $user->profile_photo_path = null;
-        }
-        
+// Handle profile photo deletion
+if ($request->boolean('delete_photo')) {
+    if ($user->profile_photo_path) {
+        Storage::disk('public')->delete($user->profile_photo_path);
+    }
+    $user->profile_photo_path = null;
+}
+
+// Handle Banner Upload
+if ($request->hasFile('banner_photo')) {
+    if ($user->banner_photo_path) {
+        Storage::disk('public')->delete($user->banner_photo_path);
+    }
+    $user->banner_photo_path = $request->file('banner_photo')->store('banners', 'public');
+}
+
+// Handle Banner Deletion
+if ($request->boolean('delete_banner')) {
+    if ($user->banner_photo_path) {
+        Storage::disk('public')->delete($user->banner_photo_path);
+    }
+    $user->banner_photo_path = null;
+}
+
         // --- نهاية منطق الصورة ** ---
 
-        // --- 4. NEW FEATURE: Handle Banner Photo Upload (صورة الغلاف) ---
-        if ($request->hasFile('banner_photo')) {
-            // Delete old banner if exists to save space
-            if ($user->banner_photo_path) {
-                Storage::disk('public')->delete($user->banner_photo_path);
-            }
-            // Store new banner in 'banners' folder
-            $user->banner_photo_path = $request->file('banner_photo')->store('banners', 'public');
-        }
-        // --- End New Feature ---
-
-        // 5. حفظ كل التغييرات في $user
+        // 4. حفظ كل التغييرات في $user
         $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
@@ -90,17 +94,10 @@ class ProfileController extends Controller
         $user = $request->user();
 
         Auth::logout();
-        
         // حذف الصورة الشخصية للمستخدم عند حذف الحساب
         if ($user->profile_photo_path) {
             Storage::disk('public')->delete($user->profile_photo_path);
         }
-        
-        // NEW: Delete Banner if exists
-        if ($user->banner_photo_path) {
-            Storage::disk('public')->delete($user->banner_photo_path);
-        }
-
         $user->delete();
 
         $request->session()->invalidate();

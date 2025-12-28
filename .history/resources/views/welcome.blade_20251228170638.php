@@ -57,7 +57,7 @@
                     <svg class="w-5 h-5 mr-2 -ml-1 rtl:ml-2 rtl:-mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </a>
                 
-                <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl hover:bg-white hover:text-indigo-900 shadow-lg hover:-translate-y-1">
+                <a href="{{ route('teachers.index') }}" class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl hover:bg-white hover:text-indigo-900 shadow-lg hover:-translate-y-1">
                     سجل الآن
                 </a>
             </div>

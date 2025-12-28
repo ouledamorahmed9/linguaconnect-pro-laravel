@@ -41,19 +41,18 @@
                             <div class="mb-6 bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
                                 <div class="flex justify-center items-baseline text-gray-900">
                                     @php
-                                        // Calculate per session price dynamically
-                                        $perSession = $plan['price'] / $plan['lessons_count'];
-                                        // Format numbers to show 2 decimal places (e.g., 2.60)
-                                        $formattedSession = number_format($perSession, 2);
-                                        $formattedTotal = number_format($plan['price'], 2);
+                                        // Calculate per session price
+                                        $perSession = number_format($plan['price'] / $plan['lessons_count'], 2);
+                                        // Remove .00 if simple number
+                                        $perSession = str_replace('.00', '', $perSession);
                                     @endphp
-                                    <span class="text-4xl font-extrabold tracking-tight">{{ $formattedSession }}</span>
-                                    <span class="ml-1 text-xl font-semibold text-gray-500">$</span>
+                                    <span class="text-4xl font-extrabold tracking-tight">{{ $perSession }}</span>
+                                    <span class="ml-1 text-xl font-semibold text-gray-500">{{ $currency }}</span>
                                     <span class="mr-1 text-gray-500 text-lg">/ للحصة</span>
                                 </div>
                                 
-                                <p class="text-xs text-gray-500 mt-2 font-bold">
-                                    تدفع شهرياً: {{ $formattedTotal }}$ ({{ $plan['lessons_count'] }} حصص)
+                                <p class="text-xs text-gray-500 mt-1 font-medium">
+                                    تدفع شهرياً: {{ $plan['price'] }}{{ $currency }}
                                 </p>
                             </div>
 
@@ -69,8 +68,8 @@
                             </ul>
                         </div>
                         
-                        <a href="{{ route('client.subscription.create', $key) }}" class="mt-8 block w-full py-3 px-4 rounded-lg text-center text-sm font-bold transition-colors duration-200 {{ $plan['is_popular'] ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md' : 'bg-gray-50 text-indigo-700 hover:bg-indigo-50 border border-indigo-200' }}">
-                            اشترك الآن
+                        <a href="{{ route('register') }}" class="mt-8 block w-full py-3 px-4 rounded-lg text-center text-sm font-bold transition-colors duration-200 {{ $plan['is_popular'] ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md' : 'bg-gray-50 text-indigo-700 hover:bg-indigo-50 border border-indigo-200' }}">
+                            ابدأ الآن
                         </a>
                     </div>
                 @endforeach
