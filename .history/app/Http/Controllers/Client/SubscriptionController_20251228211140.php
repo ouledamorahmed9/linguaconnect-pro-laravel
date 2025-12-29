@@ -10,27 +10,6 @@ use Illuminate\Support\Facades\Auth;
 
 class SubscriptionController extends Controller
 {
-    /**
-     * Display a listing of the user's subscriptions.
-     */
-    public function index()
-    {
-        $user = Auth::user();
-        
-        // Fetch all subscriptions, newest first
-        $subscriptions = $user->subscriptions()
-                              ->orderBy('created_at', 'desc')
-                              ->get();
-
-        // Separate active vs inactive for easier display
-        $activeSubscription = $subscriptions->firstWhere('status', 'active');
-
-        return view('client.subscription.index', compact('subscriptions', 'activeSubscription'));
-    }
-
-    /**
-     * Show the subscription creation page.
-     */
     public function create($planKey)
     {
         $plans = config('plans');
@@ -44,9 +23,6 @@ class SubscriptionController extends Controller
         return view('client.subscription.create', compact('plan', 'planKey'));
     }
 
-    /**
-     * Store the new subscription in the database.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -62,6 +38,7 @@ class SubscriptionController extends Controller
 
         $selectedPlan = $plans[$planKey];
 
+        // --- THE FINAL FIX IS HERE ---
         Subscription::create([
             'user_id'        => Auth::id(),
             'plan_type'      => $planKey,
@@ -72,8 +49,10 @@ class SubscriptionController extends Controller
             'status'         => 'active',
             'start_date'     => Carbon::now(),
             'end_date'       => Carbon::now()->addMonth(),
-            'total_lessons'  => $selectedPlan['lessons_count'], 
-            'lesson_credits' => $selectedPlan['lessons_count'],
+            
+            // Saving the lesson counts from config
+            'total_lessons'  => $selectedPlan['lessons_count'],  // e.g., 8
+            'lesson_credits' => $selectedPlan['lessons_count'],  // Starts with 8 credits
         ]);
 
         return redirect()->route('client.dashboard')->with('success', 'تم الاشتراك بنجاح! رصيدك الآن ' . $selectedPlan['lessons_count'] . ' حصص.');

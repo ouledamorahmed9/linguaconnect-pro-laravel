@@ -19,8 +19,6 @@ class Subscription extends Model
         'status',
         'start_date',
         'end_date',
-        'total_lessons',   // <--- ADD THIS
-        'lesson_credits',  // <--- ADD THIS
     ];
 
     protected $casts = [
