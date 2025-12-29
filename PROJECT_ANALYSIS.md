@@ -3,7 +3,7 @@
 Prepared as a reference for future feature planning, triage, and implementation.
 
 ## Snapshot
-- **Stack**: Laravel 9 (PHP ≥ 8.0), Sanctum (API tokens), Breeze (auth scaffolding), Vite + Tailwind/Alpine (frontend), Spatie Activity Log, Doctrine DBAL.  
+- **Stack**: Laravel 9 (PHP ≥ 8.0), Sanctum (API tokens), Breeze (auth scaffolding), Vite ^4 + Tailwind ^3.1 + Alpine ^3.4 + Axios ^1.1 (frontend), Spatie Activity Log, Doctrine DBAL.  
 - **Roles**: Admin, Coordinator, Teacher, Client, Guest. Authorization mostly enforced via route middleware (`role:*`, `auth`, `verified`).
 - **Key domains**: Scheduling (weekly slots), Appointments with verification/disputes, Subscriptions, Messaging/Inbox, Reviews, Referrals, Study Subjects, Session reporting.
 
@@ -34,7 +34,7 @@ Prepared as a reference for future feature planning, triage, and implementation.
 
 ## Observations / risks
 - DB connection is required during package discovery; provide `.env` with reachable DB (or set `DB_CONNECTION=sqlite` with file) to run installs/tests locally.
-- Role checks rely on `User::hasRole` string comparison; ensure consistent role values across seeds/UI to avoid bypasses.
+- Role checks rely on `User::hasRole` string comparison; define central role constants/enum and enforce via policies/middleware to prevent mismatched strings or bypasses.
 - Many controllers assume existing related records; add validation/authorization policies when extending to APIs or exposing new endpoints.
 - Storage-backed media (profile/banner) and session proof IDs expect configured filesystem disk; confirm `FILESYSTEM_DISK`/S3 settings before rollout.
 
