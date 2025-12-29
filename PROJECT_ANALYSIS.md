@@ -3,7 +3,7 @@
 Prepared as a reference for future feature planning, triage, and implementation.
 
 ## Snapshot
-- **Stack**: Laravel 9 (PHP ≥ 8.0), Sanctum (API tokens), Breeze (auth scaffolding), Vite ^4 + Tailwind ^3.1 + Alpine ^3.4 + Axios ^1.1 (frontend), Spatie Activity Log, Doctrine DBAL.  
+- **Stack**: Laravel 9 (PHP ≥ 8.0.2), Sanctum (API tokens), Breeze (auth scaffolding), Vite ^4 + Tailwind ^3.1 + Alpine ^3.4.2 + Axios ^1.1 (frontend), Spatie Activity Log, Doctrine DBAL.  
 - **Roles**: Admin, Coordinator, Teacher, Client, Guest. Authorization mostly enforced via route middleware (`role:*`, `auth`, `verified`).
 - **Key domains**: Scheduling (weekly slots), Appointments with verification/disputes, Subscriptions, Messaging/Inbox, Reviews, Referrals, Study Subjects, Session reporting.
 
