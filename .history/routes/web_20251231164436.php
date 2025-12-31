@@ -40,7 +40,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\PublicTeacherController;
 use Illuminate\Support\Facades\Cookie;
 use App\Models\User;
-use App\Http\Controllers\Admin\SubscriptionController;
+
 
 // THE "TRAFFIC COP" ROUTE
 // This handles the request to /dashboard and redirects based on role
@@ -116,8 +116,7 @@ Route::get('/teachers', function () {
 
     return view('teachers', compact('teachers'));
 })->name('teachers.index');
-Route::get('/pricing', [PricingController::class, 'index'])->name('pricing.index');
-Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 
 //======================================================================
 // Authenticated Client Routes
@@ -178,8 +177,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/clients/{client}/subscriptions/create', [AdminSubscriptionController::class, 'create'])->name('clients.subscriptions.create');
     Route::post('/clients/{client}/subscriptions', [AdminSubscriptionController::class, 'store'])->name('clients.subscriptions.store');
     Route::delete('/subscriptions/{subscription}', [AdminSubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
-Route::get('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
-    Route::post('/subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
+
     // Teacher Management
     Route::get('/teachers', [AdminTeacherController::class, 'index'])->name('teachers.index');
     Route::get('/teachers/create', [AdminTeacherController::class, 'create'])->name('teachers.create');

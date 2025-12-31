@@ -40,7 +40,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\PublicTeacherController;
 use Illuminate\Support\Facades\Cookie;
 use App\Models\User;
-use App\Http\Controllers\Admin\SubscriptionController;
+
 
 // THE "TRAFFIC COP" ROUTE
 // This handles the request to /dashboard and redirects based on role

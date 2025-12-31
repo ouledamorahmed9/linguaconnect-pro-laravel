@@ -40,7 +40,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\PublicTeacherController;
 use Illuminate\Support\Facades\Cookie;
 use App\Models\User;
-use App\Http\Controllers\Admin\SubscriptionController;
+
 
 // THE "TRAFFIC COP" ROUTE
 // This handles the request to /dashboard and redirects based on role
@@ -175,11 +175,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/clients/{client}/edit', [AdminClientController::class, 'edit'])->name('clients.edit');
     Route::patch('/clients/{client}', [AdminClientController::class, 'update'])->name('clients.update');
     Route::delete('/clients/{client}', [AdminClientController::class, 'destroy'])->name('clients.destroy');
-    Route::get('/clients/{client}/subscriptions/create', [AdminSubscriptionController::class, 'create'])->name('clients.subscriptions.create');
-    Route::post('/clients/{client}/subscriptions', [AdminSubscriptionController::class, 'store'])->name('clients.subscriptions.store');
-    Route::delete('/subscriptions/{subscription}', [AdminSubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
-Route::get('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
-    Route::post('/subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
+    // Add these routes for client subscription management by admin
+    Route::get('clients/{client}/subscription/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
+    Route::post('clients/{client}/subscription', [SubscriptionController::class, 'store'])->name('subscriptions.store'); // This was missing
+
     // Teacher Management
     Route::get('/teachers', [AdminTeacherController::class, 'index'])->name('teachers.index');
     Route::get('/teachers/create', [AdminTeacherController::class, 'create'])->name('teachers.create');
