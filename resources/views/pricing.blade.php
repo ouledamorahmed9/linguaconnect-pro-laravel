@@ -1,74 +1,105 @@
-@extends('layouts.public')
+<x-public-layout>
 
-@section('title', 'الأسعار - أكاديمية كمـــــون')
 
-@section('content')
-    <!-- Page Header Section -->
-    <section class="bg-gray-50 pt-32 pb-16">
-        <div class="container mx-auto px-6 text-center">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-800">باقات شفافة تناسب الجميع</h1>
-            <p class="text-lg text-gray-600 mt-4 max-w-3xl mx-auto">
-                اختر الباقة التي تناسب جدول طفلك وأهدافه التعليمية. لا توجد رسوم خفية أو عقود طويلة الأمد.
+    <div class="bg-gray-50 min-h-screen py-24">
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-base font-semibold text-indigo-600 tracking-wide uppercase">{{ __('messages.pricing.title') }}</h2>
+            <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                {{ __('messages.pricing.subtitle') }}
+            </p>
+            <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                {{ __('messages.pricing.description') }}
             </p>
         </div>
-    </section>
 
-    <!-- Pricing Grid Section -->
-    <section class="py-20 bg-white">
-        <div class="container mx-auto px-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
+        <div class="mt-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="space-y-8 lg:space-y-0 lg:grid lg:grid-cols-4 lg:gap-6">
                 
-                        <div class="bg-white border border-gray-200 rounded-xl shadow-lg p-8 flex flex-col h-full">
-                            <h3 class="text-2xl font-bold text-gray-800">الباقة الأساسية</h3>
-                            <p class="text-gray-500 mt-2">بداية مثالية ومنتظمة.</p>
-                            <div class="my-6">
-                                <span class="text-5xl font-extrabold text-gray-900">120</span>
-                                <span class="text-lg font-medium text-gray-500">د.ت / شهرياً</span>
+                @foreach($plans as $key => $plan)
+                    <div class="relative flex flex-col p-6 bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 {{ $plan['is_popular'] ? 'border-2 border-indigo-500 transform scale-105 z-10' : 'border border-gray-200' }}">
+                        
+                        @if($plan['is_popular'])
+                            <div class="absolute top-0 inset-x-0 -mt-3 flex justify-center">
+                                <span class="inline-flex rounded-full bg-indigo-600 px-4 py-1 text-xs font-bold tracking-wider uppercase text-white shadow-sm">
+                                    {{ __('messages.pricing.popular') }}
+                                </span>
                             </div>
-                            <ul class="space-y-4 text-gray-600 flex-grow">
-                                <li class="flex items-center"><svg class="w-5 h-5 text-indigo-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>4 حصص فردية (حصتان أسبوعياً)</li>
-                                <li class="flex items-center"><svg class="w-5 h-5 text-indigo-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>تقارير تقدم بعد كل حصة</li>
-                                <li class="flex items-center"><svg class="w-5 h-5 text-indigo-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>مرونة في اختيار الأوقات</li>
-                            </ul>
-                            <a href="#" class="mt-8 block w-full bg-indigo-100 text-indigo-600 text-center font-semibold py-3 rounded-lg hover:bg-indigo-200 transition-colors">اختر الباقة</a>
-                        </div>
+                        @endif
 
-                        <!-- Plan 2: Popular (Highlighted) -->
-                        <div class="bg-indigo-600 text-white rounded-xl shadow-2xl p-8 flex flex-col h-full transform scale-105 relative">
-                            <div class="absolute top-0 right-0 -mt-3 mr-3">
-                                <span class="bg-indigo-800 text-white text-xs font-bold px-3 py-1 rounded-full">الأكثر شيوعاً</span>
+                        <div class="flex-1">
+                            <div class="mb-4">
+                                <h3 class="text-lg font-bold text-gray-900">{{ $plan['name'] }}</h3>
+                                <p class="text-sm font-medium text-{{ $plan['color'] }}-600 mt-1">{{ $plan['sub_name'] }}</p>
+                                <span class="inline-block mt-2 px-2 py-1 text-xs font-semibold rounded bg-{{ $plan['color'] }}-50 text-{{ $plan['color'] }}-700">
+                                    👥 {{ $plan['group_size'] }}
+                                </span>
                             </div>
-                            <h3 class="text-2xl font-bold">الباقة المتقدمة</h3>
-                            <p class="text-indigo-200 mt-2">لتقدم أسرع ونتائج ملحوظة.</p>
-                            <div class="my-6">
-                                <span class="text-5xl font-extrabold">200</span>
-                                <span class="text-lg font-medium text-indigo-200">د.ت / شهرياً</span>
-                            </div>
-                            <ul class="space-y-4 text-indigo-100 flex-grow">
-                                <li class="flex items-center"><svg class="w-5 h-5 text-white mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>8 حصص فردية (حصتان أسبوعياً)</li>
-                                <li class="flex items-center"><svg class="w-5 h-5 text-white mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>تقارير تقدم بعد كل حصة</li>
-                                <li class="flex items-center"><svg class="w-5 h-5 text-white mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>أولوية في اختيار الأوقات</li>
-                                <li class="flex items-center"><svg class="w-5 h-5 text-white mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>اختبار تحديد مستوى مجاني</li>
-                            </ul>
-                            <a href="#" class="mt-8 block w-full bg-white text-indigo-600 text-center font-semibold py-3 rounded-lg hover:bg-gray-200 transition-colors">اختر الباقة</a>
-                        </div>
 
-                        <!-- Plan 3: Premium -->
-                        <div class="bg-white border border-gray-200 rounded-xl shadow-lg p-8 flex flex-col h-full">
-                            <h3 class="text-2xl font-bold text-gray-800">الباقة المكثفة</h3>
-                            <p class="text-gray-500 mt-2">لإتقان اللغة في أسرع وقت.</p>
-                            <div class="my-6">
-                                <span class="text-5xl font-extrabold text-gray-900">280</span>
-                                <span class="text-lg font-medium text-gray-500">د.ت / شهرياً</span>
+                            <p class="text-sm text-gray-500 mb-6 min-h-[40px]">
+                                {{ $plan['description'] }}
+                            </p>
+
+                            <div class="mb-6 bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+                                <div class="flex justify-center items-baseline text-gray-900">
+                                    @php
+                                        // Calculate per session price
+                                        $perSession = number_format($plan['price'] / $plan['lessons_count'], 2);
+                                        // Remove .00 if simple number
+                                        $perSession = str_replace('.00', '', $perSession);
+                                    @endphp
+                                    <span class="text-4xl font-extrabold tracking-tight">{{ $perSession }}</span>
+                                    <span class="ml-1 text-xl font-semibold text-gray-500">{{ $currency }}</span>
+                                    <span class="mr-1 text-gray-500 text-lg">{{ __('messages.pricing.per_session') }}</span>
+                                </div>
+                                
+                                <p class="text-xs text-gray-500 mt-1 font-medium">
+                                    {{ __('messages.pricing.monthly_payment', ['price' => $plan['price'] . $currency]) }}
+                                </p>
                             </div>
-                            <ul class="space-y-4 text-gray-600 flex-grow">
-                                <li class="flex items-center"><svg class="w-5 h-5 text-indigo-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>12 حصة فردية (3 حصص أسبوعياً)</li>
-                                <li class="flex items-center"><svg class="w-5 h-5 text-indigo-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>كافة مزايا الباقة المتقدمة</li>
-                                <li class="flex items-center"><svg class="w-5 h-5 text-indigo-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>دعم مباشر عبر WhatsApp</li>
+
+                            <ul role="list" class="space-y-4 border-t border-gray-100 pt-6">
+                                @foreach($plan['features'] as $feature)
+                                    <li class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        </div>
+                                        <span class="mr-3 text-sm text-gray-600">{{ $feature }}</span>
+                                    </li>
+                                @endforeach
                             </ul>
-                            <a href="#" class="mt-8 block w-full bg-indigo-100 text-indigo-600 text-center font-semibold py-3 rounded-lg hover:bg-indigo-200 transition-colors">اختر الباقة</a>
                         </div>
+                        
+                        <a href="{{ route('client.subscription.create', ['plan' => $key]) }}" class="mt-8 block w-full py-3 px-4 rounded-lg text-center text-sm font-bold transition-colors duration-200 {{ $plan['is_popular'] ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md' : 'bg-gray-50 text-indigo-700 hover:bg-indigo-50 border border-indigo-200' }}">
+                            {{ __('messages.pricing.start_now') }}
+                        </a>
                     </div>
+                @endforeach
+
+            </div>
+        </div>
+        
+        <div class="max-w-2xl mx-auto px-4 mt-20 sm:px-6 lg:px-8 text-center pb-12">
+             <div class="grid grid-cols-3 gap-4 text-center text-gray-500 text-sm">
+                <div class="flex flex-col items-center">
+                    <div class="p-2 bg-green-100 rounded-full mb-2 text-green-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <span>{{ __('messages.pricing.guarantee') }}</span>
                 </div>
-            </section>
-@endsection
+                <div class="flex flex-col items-center">
+                    <div class="p-2 bg-blue-100 rounded-full mb-2 text-blue-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <span>{{ __('messages.pricing.secure') }}</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="p-2 bg-purple-100 rounded-full mb-2 text-purple-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    <span>{{ __('messages.pricing.certified') }}</span>
+                </div>
+             </div>
+        </div>
+    </div>
+</x-public-layout>

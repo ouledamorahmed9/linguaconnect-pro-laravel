@@ -23,7 +23,8 @@ class SubscriptionController extends Controller
             abort(403, 'غير مصرح لك بالوصول لهذه الصفحة');
         }
 
-        return view('coordinator.subscriptions.create', compact('client'));
+        $studySubjects = \App\Models\StudySubject::where('is_active', true)->get();
+        return view('coordinator.subscriptions.create', compact('client', 'studySubjects'));
     }
 
     /**
@@ -37,14 +38,16 @@ class SubscriptionController extends Controller
         }
 
         $validated = $request->validate([
-            'plan_type' => ['required', 'string', 'in:basic,advanced,intensive'],
+            'plan_type' => ['required', 'string', 'in:one_to_one,duo,vip,normal'],
+            'target_language' => ['required', 'string'],
             'starts_at' => ['required', 'date'],
         ]);
 
         $lessonCredits = [
-            'basic' => 4,
-            'advanced' => 8,
-            'intensive' => 12,
+            'one_to_one' => 8,
+            'duo' => 8,
+            'vip' => 8,
+            'normal' => 8,
         ];
 
         $startsAt = Carbon::parse($validated['starts_at']);
@@ -52,6 +55,7 @@ class SubscriptionController extends Controller
 
         $subscription = $client->subscriptions()->create([
             'plan_type' => $validated['plan_type'],
+            'target_language' => $validated['target_language'],
             'total_lessons' => $lessonCredits[$validated['plan_type']],
             'lessons_used' => 0,
             'starts_at' => $startsAt,
@@ -63,7 +67,7 @@ class SubscriptionController extends Controller
         activity()
             ->causedBy(Auth::user())
             ->performedOn($subscription)
-            ->log("Assigned a new '{$subscription->plan_type}' subscription to client '{$client->name}'");
+            ->log("Assigned a new '{$subscription->plan_type}' subscription ({$subscription->target_language}) to client '{$client->name}'");
 
         return redirect()->route('coordinator.clients.edit', $client)->with('status', 'تم تعيين الاشتراك الجديد بنجاح!');
     }
@@ -71,14 +75,14 @@ class SubscriptionController extends Controller
     /**
      * حذف الاشتراك من قاعدة البيانات.
      */
-public function destroy(Subscription $subscription): RedirectResponse
+    public function destroy(Subscription $subscription): RedirectResponse
     {
         // ** تأمين احترافي: التأكد من أن المنسق يمتلك العميل المرتبط بهذا الاشتراك **
         $client = $subscription->user;
         if ($client->created_by_user_id !== Auth::id()) {
             abort(403, 'غير مصرح لك بالقيام بهذا الإجراء');
         }
-        
+
         $clientId = $subscription->user_id;
 
         // --- ** ابدأ الإضافة هنا ** ---
@@ -92,5 +96,6 @@ public function destroy(Subscription $subscription): RedirectResponse
         $subscription->delete();
 
         return redirect()->route('coordinator.clients.edit', $clientId)
-                         ->with('status', 'تم إلغاء الاشتراك بنجاح.');
-    }}
+            ->with('status', 'تم إلغاء الاشتراك بنجاح.');
+    }
+}

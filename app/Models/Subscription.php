@@ -25,6 +25,8 @@ class Subscription extends Model
         'status',
         'total_lessons',
         'lessons_used',
+        'target_language',
+        'whatsapp_number',
     ];
 
     /**
@@ -38,7 +40,7 @@ class Subscription extends Model
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
     ];
-    
+
     /**
      * Get the user (client) that owns the subscription.
      */
@@ -56,13 +58,21 @@ class Subscription extends Model
     }
 
     /**
+     * Get the remaining lesson credits.
+     */
+    public function getLessonCreditsAttribute(): int
+    {
+        return max(0, $this->total_lessons - $this->lessons_used);
+    }
+
+    /**
      * Configure the activity log options for this model.
      */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->logOnly(['plan_type', 'status', 'ends_at', 'total_lessons'])
-            ->setDescriptionForEvent(function(string $eventName) {
+            ->setDescriptionForEvent(function (string $eventName) {
                 $clientName = $this->user->name ?? 'Unknown Client';
                 return "Subscription for client '{$clientName}' was {$eventName}";
             })

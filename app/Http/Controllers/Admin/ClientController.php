@@ -14,7 +14,7 @@ use Illuminate\Http\RedirectResponse;
 
 class ClientController extends Controller
 {
-/**
+    /**
      * Display a listing of all clients.
      */
     public function index(Request $request): View
@@ -24,15 +24,15 @@ class ClientController extends Controller
         // Check for search input
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
         // Get results with pagination (10 per page)
-        $clients = $query->latest()->paginate(10);
+        $clients = $query->with('subscriptions')->latest()->paginate(20);
 
         return view('admin.clients.index', compact('clients'));
     }
@@ -54,7 +54,7 @@ class ClientController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:' . User::class],
             'phone' => ['required', 'string', 'max:20'],
             'study_subject_id' => ['required', 'exists:study_subjects,id'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -79,7 +79,7 @@ class ClientController extends Controller
     {
         // Fetch the client's current active subscription
         $activeSubscription = $client->subscriptions()->where('status', 'active')->latest('starts_at')->first();
-        
+
         // Fetch subjects for the dropdown
         $studySubjects = StudySubject::active()->ordered()->get();
 

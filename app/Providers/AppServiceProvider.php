@@ -31,5 +31,7 @@ class AppServiceProvider extends ServiceProvider
 
         $platform = DB::connection()->getDoctrineSchemaManager()->getDatabasePlatform();
         $platform->registerDoctrineTypeMapping('enum', 'string');
+
+        \Illuminate\Pagination\Paginator::useTailwind();
     }
 }

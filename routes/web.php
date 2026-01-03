@@ -20,7 +20,7 @@ use App\Http\Controllers\Admin\DisputeController as AdminDisputeController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
 use App\Http\Controllers\Admin\TeacherClientController as AdminTeacherClientController;
 // --- ** ADD THIS NEW CONTROLLER ** ---
-use App\Http\Controllers\Admin\WeeklySlotController; 
+use App\Http\Controllers\Admin\WeeklySlotController;
 // --- ** END OF ADD ** ---
 use App\Http\Controllers\Teacher\LessonHistoryController;
 
@@ -50,10 +50,10 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
     if ($user->hasRole('admin')) {
         return redirect()->route('admin.dashboard'); // Ensure you have this route name
     }
-    
+
     // Coordinators often use the admin panel or a specific coordinator panel
     if ($user->hasRole('coordinator')) {
-        return redirect()->route('admin.dashboard'); 
+        return redirect()->route('admin.dashboard');
     }
 
     if ($user->hasRole('teacher')) {
@@ -76,8 +76,17 @@ Route::post('/teachers/{teacher}/reviews', [PublicTeacherController::class, 'sto
 
 
 
+// Language Switcher
+Route::get('lang/{locale}', function ($locale) {
+    if (in_array($locale, ['ar', 'en'])) {
+        session(['locale' => $locale]);
+    }
+    return redirect()->back();
+})->name('lang.switch');
+
 // LEGAL PAGES (Required for Stripe/Bank)
 Route::get('/contact-us', [LegalController::class, 'contact'])->name('legal.contact');
+Route::get('/faq', [LegalController::class, 'faq'])->name('legal.faq');
 Route::get('/privacy-policy', [LegalController::class, 'privacy'])->name('legal.privacy');
 Route::get('/terms-of-service', [LegalController::class, 'terms'])->name('legal.terms');
 Route::get('/refund-policy', [LegalController::class, 'refund'])->name('legal.refund');
@@ -105,17 +114,23 @@ Route::get('/ref/{code}', function ($code) {
 //======================================================================
 // Public Guest Routes
 //======================================================================
-Route::get('/', function () { return view('welcome'); })->name('welcome');
 // OUR TEACHERS PAGE
 Route::get('/teachers', function () {
     // Fetch real teachers from DB
     $teachers = App\Models\User::where('role', 'teacher')
-                ->with('studySubject') // Eager load the subject they teach
-                ->latest()
-                ->get();
+        ->with('studySubject') // Eager load the subject they teach
+        ->latest()
+        ->get();
 
     return view('teachers', compact('teachers'));
 })->name('teachers.index');
+
+Route::get('/', function () {
+    $plans = \App\Http\Controllers\PricingController::getPlans();
+    $currency = __('messages.pricing.currency');
+    $countryName = 'Tunisia';
+    return view('welcome', compact('plans', 'currency', 'countryName'));
+})->name('welcome');
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing.index');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 
@@ -127,13 +142,19 @@ Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->name('
     Route::get('/my-schedule', [ScheduleController::class, 'index'])->name('schedule.index');
     Route::get('/progress-reports', [ProgressReportController::class, 'index'])->name('progress-reports.index');
     Route::get('/my-subscription', [ClientSubscriptionController::class, 'index'])->name('subscription.index');
-    
+
     // --- ADD THESE NEW ROUTES ---
     Route::get('/subscription/create/{plan}', [App\Http\Controllers\Client\SubscriptionController::class, 'create'])
         ->name('subscription.create');
 
     Route::post('/subscription', [App\Http\Controllers\Client\SubscriptionController::class, 'store'])
         ->name('subscription.store');
+
+    Route::get('/subscription/success/{subscription}', [App\Http\Controllers\Client\SubscriptionController::class, 'success'])
+        ->name('subscription.success');
+
+    Route::post('/subscription/whatsapp/{subscription}', [App\Http\Controllers\Client\SubscriptionController::class, 'updateWhatsapp'])
+        ->name('subscription.update-whatsapp');
 });
 
 //======================================================================
@@ -141,7 +162,7 @@ Route::middleware(['auth', 'verified', 'role:client'])->prefix('client')->name('
 //======================================================================
 Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
     Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
-    
+
     Route::get('/schedule', [TeacherScheduleController::class, 'index'])->name('schedule.index');
     Route::post('/schedule', [TeacherScheduleController::class, 'store'])->name('schedule.store');
     Route::delete('/schedule/{weeklySlot}', [TeacherScheduleController::class, 'destroy'])->name('schedule.destroy');
@@ -154,9 +175,9 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->name
     Route::get('/schedule/{weeklySlot}/edit', [TeacherScheduleController::class, 'edit'])->name('schedule.edit');
     Route::patch('/schedule/{weeklySlot}', [TeacherScheduleController::class, 'update'])->name('schedule.update');
 
-        // Inbox
-    Route:: get('/inbox', [\App\Http\Controllers\InboxController::class, 'index'])->name('inbox.index');
-    Route::get('/inbox/{message}', [\App\Http\Controllers\InboxController:: class, 'show'])->name('inbox.show');
+    // Inbox
+    Route::get('/inbox', [\App\Http\Controllers\InboxController::class, 'index'])->name('inbox.index');
+    Route::get('/inbox/{message}', [\App\Http\Controllers\InboxController::class, 'show'])->name('inbox.show');
     Route::patch('/inbox/{message}/read', [\App\Http\Controllers\InboxController::class, 'markAsRead'])->name('inbox.markAsRead');
     Route::post('/inbox/mark-all-read', [\App\Http\Controllers\InboxController::class, 'markAllAsRead'])->name('inbox.markAllAsRead');
 
@@ -167,7 +188,7 @@ Route::middleware(['auth', 'verified', 'role:teacher'])->prefix('teacher')->name
 //======================================================================
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    
+
     // Client Management
     Route::get('/clients', [AdminClientController::class, 'index'])->name('clients.index');
     Route::get('/clients/create', [AdminClientController::class, 'create'])->name('clients.create');
@@ -178,7 +199,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/clients/{client}/subscriptions/create', [AdminSubscriptionController::class, 'create'])->name('clients.subscriptions.create');
     Route::post('/clients/{client}/subscriptions', [AdminSubscriptionController::class, 'store'])->name('clients.subscriptions.store');
     Route::delete('/subscriptions/{subscription}', [AdminSubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
-Route::get('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
+    Route::get('/subscriptions/requests', [AdminSubscriptionController::class, 'newRequests'])->name('subscriptions.requests');
+    Route::get('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
     Route::post('/subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
     // Teacher Management
     Route::get('/teachers', [AdminTeacherController::class, 'index'])->name('teachers.index');
@@ -222,16 +244,16 @@ Route::get('/subscriptions/create', [SubscriptionController::class, 'create'])->
 
     // Session & Dispute Management
     Route::get('/sessions/verify', [SessionVerificationController::class, 'index'])->name('sessions.verify.index');
-        // Study Subjects Management
+    // Study Subjects Management
     Route::get('/study-subjects', [\App\Http\Controllers\Admin\StudySubjectController::class, 'index'])->name('study-subjects.index');
     Route::get('/study-subjects/create', [\App\Http\Controllers\Admin\StudySubjectController::class, 'create'])->name('study-subjects.create');
     Route::post('/study-subjects', [\App\Http\Controllers\Admin\StudySubjectController::class, 'store'])->name('study-subjects.store');
     Route::get('/study-subjects/{studySubject}/edit', [\App\Http\Controllers\Admin\StudySubjectController::class, 'edit'])->name('study-subjects.edit');
     Route::patch('/study-subjects/{studySubject}', [\App\Http\Controllers\Admin\StudySubjectController::class, 'update'])->name('study-subjects.update');
-    Route::delete('/study-subjects/{studySubject}', [\App\Http\Controllers\Admin\StudySubjectController:: class, 'destroy'])->name('study-subjects.destroy');
-        // Messages Management
+    Route::delete('/study-subjects/{studySubject}', [\App\Http\Controllers\Admin\StudySubjectController::class, 'destroy'])->name('study-subjects.destroy');
+    // Messages Management
     Route::get('/messages', [\App\Http\Controllers\Admin\MessageController::class, 'index'])->name('messages.index');
-    Route::get('/messages/create', [\App\Http\Controllers\Admin\MessageController:: class, 'create'])->name('messages.create');
+    Route::get('/messages/create', [\App\Http\Controllers\Admin\MessageController::class, 'create'])->name('messages.create');
     Route::post('/messages', [\App\Http\Controllers\Admin\MessageController::class, 'store'])->name('messages.store');
     Route::get('/messages/{message}', [\App\Http\Controllers\Admin\MessageController::class, 'show'])->name('messages.show');
     Route::delete('/messages/{message}', [\App\Http\Controllers\Admin\MessageController::class, 'destroy'])->name('messages.destroy');
@@ -250,7 +272,7 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::post('/clients', [CoordinatorClientController::class, 'store'])->name('clients.store');
     Route::get('/clients/{client}/edit', [CoordinatorClientController::class, 'edit'])->name('clients.edit');
     Route::patch('/clients/{client}', [CoordinatorClientController::class, 'update'])->name('clients.update');
-    
+
     Route::delete('/clients/{client}', [CoordinatorClientController::class, 'destroy'])->name('clients.destroy');
     // Coordinator Subscription Management
     Route::get('/clients/{client}/subscriptions/create', [CoordinatorSubscriptionController::class, 'create'])->name('clients.subscriptions.create');
@@ -266,10 +288,10 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::get('/roster', [CoordinatorWeeklySlotController::class, 'index'])->name('roster.index');
     Route::post('/roster', [CoordinatorWeeklySlotController::class, 'store'])->name('roster.store');
     Route::delete('/roster/{weeklySlot}', [CoordinatorWeeklySlotController::class, 'destroy'])->name('roster.destroy');
-        Route::get('/roster/{weeklySlot}/edit', [\App\Http\Controllers\Coordinator\WeeklySlotController::class, 'edit'])
-            ->name('roster.edit');
-        Route::patch('/roster/{weeklySlot}', [\App\Http\Controllers\Coordinator\WeeklySlotController::class, 'update'])
-            ->name('roster.update');
+    Route::get('/roster/{weeklySlot}/edit', [\App\Http\Controllers\Coordinator\WeeklySlotController::class, 'edit'])
+        ->name('roster.edit');
+    Route::patch('/roster/{weeklySlot}', [\App\Http\Controllers\Coordinator\WeeklySlotController::class, 'update'])
+        ->name('roster.update');
 
     // Coordinator Session & Dispute Management
     Route::get('/sessions/verify', [CoordinatorSessionVerificationController::class, 'index'])->name('sessions.verify.index');
@@ -281,8 +303,8 @@ Route::middleware(['auth', 'verified', 'role:coordinator'])->prefix('coordinator
     Route::post('/sessions/{appointment}/cancel', [CoordinatorSessionVerificationController::class, 'cancel'])->name('sessions.cancel');
     // --- ** انتهت الإضافة ** ---
 
-        // Inbox
-    Route:: get('/inbox', [\App\Http\Controllers\InboxController::class, 'index'])->name('inbox.index');
+    // Inbox
+    Route::get('/inbox', [\App\Http\Controllers\InboxController::class, 'index'])->name('inbox.index');
     Route::get('/inbox/{message}', [\App\Http\Controllers\InboxController::class, 'show'])->name('inbox.show');
     Route::patch('/inbox/{message}/read', [\App\Http\Controllers\InboxController::class, 'markAsRead'])->name('inbox.markAsRead');
     Route::post('/inbox/mark-all-read', [\App\Http\Controllers\InboxController::class, 'markAllAsRead'])->name('inbox.markAllAsRead');
@@ -296,11 +318,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-        // --- ADD THIS ROUTE ---
+    // --- ADD THIS ROUTE ---
     // This will handle the token generation for Teachers
     Route::post('/profile/token', [ProfileController::class, 'generateToken'])
-         ->middleware('role:teacher')
-         ->name('profile.token');
+        ->middleware('role:teacher')
+        ->name('profile.token');
 });
 
 
@@ -312,5 +334,5 @@ Route::middleware('auth')->group(function () {
 
 
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 

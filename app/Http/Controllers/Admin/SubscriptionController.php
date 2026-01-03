@@ -17,7 +17,8 @@ class SubscriptionController extends Controller
      */
     public function create(User $client): View
     {
-        return view('admin.subscriptions.create', compact('client'));
+        $studySubjects = \App\Models\StudySubject::where('is_active', true)->get();
+        return view('admin.subscriptions.create', compact('client', 'studySubjects'));
     }
 
     /**
@@ -26,15 +27,32 @@ class SubscriptionController extends Controller
     public function store(Request $request, User $client)
     {
         $validated = $request->validate([
-            'plan_type' => ['required', 'string', 'in:basic,advanced,intensive'],
+            'plan_type' => ['required', 'string', 'in:one_to_one,duo,vip,normal,free_trial'],
+            'target_language' => ['required', 'string'],
             'starts_at' => ['required', 'date'],
         ]);
 
+        // Check for existing active subscription for this language
+        $existingSub = $client->subscriptions()
+            ->where('target_language', $validated['target_language'])
+            ->where('status', 'active')
+            ->where('ends_at', '>', now())
+            ->first();
+
+        // Allow multiple free trials? Maybe better to block validation if needed, 
+        // but for now, admin might want to override.
+        if ($existingSub) {
+            return back()->withErrors(['target_language' => 'This client already has an active subscription for ' . $validated['target_language']]);
+        }
+
         // THIS IS THE FIX: We define the business logic for our plans.
+        // All plans now have 8 sessions by default.
         $lessonCredits = [
-            'basic' => 4,
-            'advanced' => 8,
-            'intensive' => 12,
+            'one_to_one' => 8,
+            'duo' => 8,
+            'vip' => 8,
+            'normal' => 8,
+            'free_trial' => 1, // Free trial functionality
         ];
 
         $startsAt = Carbon::parse($validated['starts_at']);
@@ -43,6 +61,7 @@ class SubscriptionController extends Controller
         // The model will automatically log the 'created' event.
         $subscription = $client->subscriptions()->create([
             'plan_type' => $validated['plan_type'],
+            'target_language' => $validated['target_language'],
             'total_lessons' => $lessonCredits[$validated['plan_type']], // We now send the correct number of lessons.
             'lessons_used' => 0, // We initialize the used lessons to zero.
             'starts_at' => $startsAt,
@@ -53,7 +72,7 @@ class SubscriptionController extends Controller
         activity()
             ->causedBy(Auth::user())
             ->performedOn($subscription)
-            ->log("Assigned a new '{$subscription->plan_type}' subscription to client '{$client->name}'");
+            ->log("Assigned a new '{$subscription->plan_type}' subscription ({$subscription->target_language}) to client '{$client->name}'");
 
         return redirect()->route('admin.clients.edit', $client)->with('status', 'New subscription has been assigned successfully!');
     }
@@ -74,6 +93,28 @@ class SubscriptionController extends Controller
 
         // Redirect back to the client's edit page with a success message
         return redirect()->route('admin.clients.edit', $clientId)
-                         ->with('status', 'Subscription cancelled successfully.');
+            ->with('status', 'Subscription cancelled successfully.');
+    }
+
+    /**
+     * Display a list of new subscription requests.
+     */
+    public function newRequests()
+    {
+        $subscriptions = Subscription::with([
+            'user' => function ($query) {
+                // Eager load only future appointments for the user
+                $query->with([
+                    'appointments' => function ($q) {
+                    $q->where('start_time', '>', now());
+                }
+                ]);
+            }
+        ])
+            ->whereNotNull('target_language')
+            ->latest()
+            ->paginate(20);
+
+        return view('admin.subscriptions.new_requests', compact('subscriptions'));
     }
 }

@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12" x-data="{ reportModalOpen: false, sessionData: null }">
+    <div class="py-12" x-data="{ reportModalOpen: false, sessionData: null, noteModalOpen: false, currentNote: '' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             @if (session('status'))
@@ -51,6 +51,9 @@
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             الموضوع
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            ملاحظة للطالب
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             الإجراءات
@@ -108,6 +111,25 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {{ $session->topic }}
                                             </td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">
+                                                @if($session->teacher_notes)
+                                                    @if(Str::length($session->teacher_notes) > 50)
+                                                        <span>{{ Str::limit($session->teacher_notes, 50) }}</span>
+                                                        <button 
+                                                            type="button" 
+                                                            class="text-indigo-600 hover:text-indigo-900 text-xs font-bold block mt-1"
+                                                            x-on:click="currentNote = {{ json_encode($session->teacher_notes) }}; noteModalOpen = true;"
+                                                        >
+                                                            اقرأ المزيد
+                                                        </button>
+                                                        
+                                                    @else
+                                                        {{ $session->teacher_notes }}
+                                                    @endif
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
                                             
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div class="flex items-center justify-end space-x-3 rtl:space-x-reverse">
@@ -156,70 +178,116 @@
             </div>
         </div>
 
-    <template x-if="reportModalOpen">
+    <div 
+        x-show="reportModalOpen"
+        style="display: none;"
+        class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50"
+        x-transition
+    >
         <div 
-            class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50"
-            x-transition
+            class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg relative"
+            x-transition.scale
         >
-            <div 
-                class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg relative"
-                x-transition.scale
+            <button 
+                type="button"
+                @click="reportModalOpen = false" 
+                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
             >
-                <button 
-                    @click="reportModalOpen = false" 
-                    class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-                >
-                    ✕
-                </button>
+                ✕
+            </button>
 
-                <h2 class="text-2xl font-bold text-center mb-4 text-blue-700">
-                    📄 تقرير الجلسة
-                </h2>
+            <h2 class="text-2xl font-bold text-center mb-4 text-blue-700">
+                📄 تقرير الجلسة
+            </h2>
 
-                <div x-show="sessionData" class="space-y-2 text-sm">
+            <!-- Check if sessionData exists before rendering to avoid errors -->
+            <template x-if="sessionData">
+                <div class="space-y-2 text-sm">
                     <p><strong>📅 التاريخ:</strong> <span x-text="sessionData.date"></span></p>
                     <p><strong>🕒 المدة:</strong> <span x-text="sessionData.duration"></span></p>
                     <p><strong>👥 عدد المشاركين:</strong> <span x-text="sessionData.participantsCount"></span></p>
                     <p><strong>⏱ متوسط الوقت في المكالمة:</strong> <span x-text="sessionData.avgTimeInCall"></span></p>
                     <p><strong>🕰 وقت البدء:</strong> <span x-text="sessionData.startTime"></span></p>
                     <p><strong>🏁 وقت الانتهاء:</strong> <span x-text="sessionData.endTime"></span></p>
-                </div>
+                
 
-                <hr class="my-4">
+                    <hr class="my-4">
 
-                <h3 class="text-lg font-semibold mb-2 text-gray-700">المشاركون</h3>
-                <table class="w-full border text-sm">
-                    <thead class="bg-blue-100">
-                        <tr>
-                            <th class="border px-2 py-1">الاسم</th>
-                            <th class="border px-2 py-1">وقت الدخول</th>
-                            <th class="border px-2 py-1">المدة في المكالمة</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template x-for="participant in sessionData.participants" :key="participant.name">
-                            <tr class="hover:bg-gray-50">
-                                <td class="border px-2 py-1" x-text="participant.name"></td>
-                                <td class="border px-2 py-1" x-text="participant.firstSeen"></td>
-                                <td class="border px-2 py-1" x-text="participant.timeInCall"></td>
+                    <h3 class="text-lg font-semibold mb-2 text-gray-700">المشاركون</h3>
+                    <table class="w-full border text-sm">
+                        <thead class="bg-blue-100">
+                            <tr>
+                                <th class="border px-2 py-1">الاسم</th>
+                                <th class="border px-2 py-1">وقت الدخول</th>
+                                <th class="border px-2 py-1">المدة في المكالمة</th>
                             </tr>
-                        </template>
-                    </tbody>
-                </table>
-
-                <div class="text-center mt-6">
-                    <button 
-                        @click="reportModalOpen = false"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                        إغلاق
-                    </button>
+                        </thead>
+                        <tbody>
+                            <template x-for="participant in sessionData.participants" :key="participant.name">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="border px-2 py-1" x-text="participant.name"></td>
+                                    <td class="border px-2 py-1" x-text="participant.firstSeen"></td>
+                                    <td class="border px-2 py-1" x-text="participant.timeInCall"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
                 </div>
+            </template>
+
+            <div class="text-center mt-6">
+                <button 
+                    type="button"
+                    @click="reportModalOpen = false"
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                    إغلاق
+                </button>
             </div>
         </div>
-    </template>
+    </div>
+
+    <!-- Note Modal -->
+    <div 
+        x-show="noteModalOpen"
+        style="display: none;"
+        class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50"
+        x-transition
+    >
+        <div 
+            class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg relative"
+            x-transition.scale
+            @click.away="noteModalOpen = false"
+        >
+            <button 
+                type="button"
+                @click="noteModalOpen = false" 
+                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+                ✕
+            </button>
+
+            <h2 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">
+                ملاحظة للمعلم
+            </h2>
+
+            <div class="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed max-h-[60vh] overflow-y-auto" x-text="currentNote">
+            </div>
+
+            <div class="text-center mt-6">
+                <button 
+                    type="button"
+                    @click="noteModalOpen = false"
+                    class="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                >
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
  
 
     </div>
+    
 </x-app-layout>

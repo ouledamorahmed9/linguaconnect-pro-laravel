@@ -15,7 +15,7 @@ class DashboardController extends Controller
     public function index()
     {
         $client = Auth::user();
-        
+
         // --- Logic to find NEXT lesson (this is your existing, correct logic) ---
 
         $today = Carbon::now()->dayOfWeek; // 0=Sun, 1=Mon, etc.
@@ -44,20 +44,25 @@ class DashboardController extends Controller
                 ->orderBy('start_time', 'asc')
                 ->first();
         }
-        
+
         $daysOfWeek = [
-            0 => 'الأحد', 1 => 'الاثنين', 2 => 'الثلاثاء', 3 => 'الأربعاء', 
-            4 => 'الخميس', 5 => 'الجمعة', 6 => 'السبت'
+            0 => 'الأحد',
+            1 => 'الاثنين',
+            2 => 'الثلاثاء',
+            3 => 'الأربعاء',
+            4 => 'الخميس',
+            5 => 'الجمعة',
+            6 => 'السبت'
         ];
 
         // --- ** 3. NEW LOGIC: Get Subscription & Reports ** ---
-        
-        // Get the client's active subscription
-        $activeSubscription = Subscription::where('user_id', $client->id)
+
+        // Get the client's active subscriptions
+        $activeSubscriptions = Subscription::where('user_id', $client->id)
             ->where('status', 'active')
             ->where('ends_at', '>', now())
             ->latest('starts_at')
-            ->first();
+            ->get();
 
         // Get the 3 most recent lesson reports
         $latestReports = Appointment::where('client_id', $client->id)
@@ -66,14 +71,14 @@ class DashboardController extends Controller
             ->orderBy('start_time', 'desc')
             ->limit(3)
             ->get();
-        
+
         // --- ** END OF NEW LOGIC ** ---
 
 
         return view('dashboard', [
             'nextLesson' => $nextLesson,
             'daysOfWeek' => $daysOfWeek,
-            'activeSubscription' => $activeSubscription, // <-- 4. Pass new data
+            'activeSubscriptions' => $activeSubscriptions, // <-- 4. Pass new data
             'latestReports' => $latestReports,           // <-- 4. Pass new data
         ]);
     }

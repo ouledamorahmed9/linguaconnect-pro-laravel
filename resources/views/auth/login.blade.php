@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="rtl">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>تسجيل الدخول - أكاديمية كمون</title>
+        <title>{{ __('messages.nav.login') }} - {{ __('messages.welcome.hero_title') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -34,8 +34,8 @@
                         </div>
                     </a>
                     
-                    <h1 class="text-3xl font-black text-slate-900 tracking-tight">مرحباً بعودتك 👋</h1>
-                    <p class="mt-2 text-gray-500 text-sm">سجل دخولك للمتابعة إلى لوحة التحكم</p>
+                    <h1 class="text-3xl font-black text-slate-900 tracking-tight">{{ __('messages.auth.login_title') }} 👋</h1>
+                    <p class="mt-2 text-gray-500 text-sm">{{ __('messages.auth.login_subtitle') }}</p>
                 </div>
     
                 <div class="px-8 pb-10 sm:px-12">
@@ -46,44 +46,44 @@
                         @csrf
     
                         <div>
-                            <label for="email" class="block text-sm font-bold text-gray-700 mb-1.5 mr-1">البريد الإلكتروني</label>
+                            <label for="email" class="block text-sm font-bold text-gray-700 mb-1.5 ltr:ml-1 rtl:mr-1">{{ __('messages.common.email') }}</label>
                             <input id="email" type="email" name="email" :value="old('email')" required autofocus autocomplete="username"
                                 class="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-gray-400"
                                 placeholder="name@example.com" />
-                            <x-input-error :messages="$errors->get('email')" class="mt-1 mr-1" />
+                            <x-input-error :messages="$errors->get('email')" class="mt-1 ltr:ml-1 rtl:mr-1" />
                         </div>
     
                         <div>
-                            <label for="password" class="block text-sm font-bold text-gray-700 mb-1.5 mr-1">كلمة المرور</label>
+                            <label for="password" class="block text-sm font-bold text-gray-700 mb-1.5 ltr:ml-1 rtl:mr-1">{{ __('messages.common.password') }}</label>
                             <input id="password" type="password" name="password" required autocomplete="current-password"
                                 class="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-gray-400"
                                 placeholder="********" />
-                            <x-input-error :messages="$errors->get('password')" class="mt-1 mr-1" />
+                            <x-input-error :messages="$errors->get('password')" class="mt-1 ltr:ml-1 rtl:mr-1" />
                         </div>
     
                         <div class="flex items-center justify-between">
                             <label for="remember_me" class="inline-flex items-center cursor-pointer">
                                 <input id="remember_me" type="checkbox" name="remember" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 w-4 h-4 cursor-pointer">
-                                <span class="mr-2 text-sm text-gray-600 font-medium">{{ __('تذكرني') }}</span>
+                                <span class="ltr:ml-2 rtl:mr-2 text-sm text-gray-600 font-medium">{{ __('messages.auth.remember') }}</span>
                             </label>
                             
                             @if (Route::has('password.request'))
                                 <a href="{{ route('password.request') }}" class="text-sm text-indigo-600 font-bold hover:text-indigo-700 hover:underline transition-colors">
-                                    {{ __('نسيت كلمة المرور؟') }}
+                                    {{ __('messages.auth.forgot_password') }}
                                 </a>
                             @endif
                         </div>
     
                         <button type="submit" class="w-full mt-6 bg-slate-900 text-white font-bold text-lg py-4 rounded-xl hover:bg-indigo-600 transition-all duration-300 shadow-xl shadow-slate-200 hover:shadow-indigo-500/20 transform hover:-translate-y-0.5 flex items-center justify-center gap-3">
-                            <span>تسجيل الدخول</span>
+                            <span>{{ __('messages.auth.login_btn') }}</span>
                             <svg class="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
                         </button>
     
                         <div class="text-center pt-2">
                             <p class="text-sm text-gray-500">
-                                ليس لديك حساب؟ 
+                                {{ __('messages.auth.no_account') }} 
                                 <a href="{{ route('register') }}" class="text-indigo-600 font-bold hover:text-indigo-700 hover:underline transition-colors">
-                                    أنشئ حساباً جديداً
+                                    {{ __('messages.auth.register_link') }}
                                 </a>
                             </p>
                         </div>
